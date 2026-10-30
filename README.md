@@ -26,6 +26,49 @@ pay(payee, amount)                                                       # only 
 
 See [`examples/`](./examples/) for the full, runnable versions (CI runs every one against the live API).
 
+## What it checks
+
+Not one kind of claim. Every check answers the same object, the [counted claim](./specs/counted-claim.md): result, measure, count, evidence, requirement, verdict. Each kind of claim is a versioned **profile**: 19 live, 1 in draft, served at `GET https://studio.mizan.market/api/profiles`.
+
+**AI models and agents**
+
+| Profile | The question it answers |
+|---|---|
+| `model-evaluation` | What a model really scores |
+| `model-retrain` | Every retrain is a trial *(draft)* |
+| `service-reliability` | How reliable its service really is |
+| `delivery-record` | What happened after others paid it |
+| `denominator-reputation` | Of all its receipted jobs with independent counterparties, how many succeeded |
+| `mandate-conduct` | Whether it stayed inside its own rules |
+| `outcome-meter` | Billed outcomes match all conversations, under the rule fixed in advance |
+| `forecast-accuracy` | How accurate its forecasts really are |
+
+**Money**
+
+| Profile | The question it answers |
+|---|---|
+| `earned-performance` | What it really earned. Trading records, under [VTR-1](./specs/vtr-1/) |
+| `yield` | What yield a vault actually paid (advertised vs realised) |
+| `signal-calls` | What a signal seller's calls actually did (every call counted) |
+| `earnings-claim` | What typical earners actually earn (every earner counted) |
+| `custody` | What a custodian or bridge says it holds (never proof of reserves) |
+
+**Machines, chains and institutions**
+
+| Profile | The question it answers |
+|---|---|
+| `depin-liveness` | Is the node really there and answering (counted challenges) |
+| `onchain-event` | That it happened on-chain (settled, succeeded, confirmed) |
+| `token-structure` | How a token is built: who can change it, mint it or freeze it |
+| `random-draw` | Whether the operator's logged draws fit its committed odds (operator-reported) |
+| `certification` | What it is certified for, by whom, until when |
+| `rulebook` | Which rules were in force, and when they changed |
+| `reporter-quality` | How often a security reporter's findings hold up |
+
+A real one, not a trading record: ledger entry [#388](https://studio.mizan.market/api/log/proof/388) is a model evaluation, 50 tasks registered before their outcomes and sealed, first-try success 70%. Check it on your machine with [`examples/verify-ledger-entry`](./examples/verify-ledger-entry/).
+
+Every answer states its evidence grade: [DECLARED, RECORDED or PROVEN](./specs/evidence-ladder.md). A live profile is one MIZAN checks today. It does not mean every claim under it is proven in zero knowledge, and the answer always says which grade it is.
+
 ## Installation
 
 <details open>
@@ -123,7 +166,7 @@ A REFUSE carries a forwardable proof request: when the other side proves itself,
 | Registry of every credential, refusals included | <https://mizan.market/registry/> · <https://studio.mizan.market/api/registry> |
 | Published keys | <https://studio.mizan.market/.well-known/mizan-keys.json> |
 | Verifier binaries + SHA-256 sums | <https://mizan.market/verify/> |
-| The standard (VTR-1) | <https://mizan.market/standard/> |
+| The standard | [`specs/`](./specs/): the counted claim, evidence ladder, requirement language, ledger, signatures, and the profiles. Trading records: VTR-1, frozen 2026-08-01, [SSRN 7215664](https://ssrn.com/abstract=7215664) · <https://mizan.market/standard/> |
 | For agents | [`llms.txt`](https://mizan.market/llms.txt) · [`SKILL.md`](https://mizan.market/skill/SKILL.md) · [`openapi.json`](https://mizan.market/skill/openapi.json) |
 
 ## Where it plugs in
@@ -145,7 +188,7 @@ Status of each, stated plainly: [`integrations/README.md`](./integrations/README
 ## Repository
 
 ```
-specs/          the counted claim, evidence ladder, requirement language, ledger, signatures, VTR-1 (CC BY 4.0)
+specs/          the counted claim, evidence ladder, requirement language, ledger, signatures, profiles incl. VTR-1 (CC BY 4.0)
 typescript/     SDK (mizan-agent-tools)
 python/         SDK (mizan-sdk), LangChain / CrewAI tools, MCP server (stdio)
 integrations/   x402 guard, elizaOS, A2A, ERC-8004, AP2 / ACP, LangChain, CrewAI

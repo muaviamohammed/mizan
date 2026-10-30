@@ -214,7 +214,7 @@ def require_credential(agent_or_credential: str, allow_not_significant: bool = F
 @mcp.tool()
 def allocate_check(agent_or_credential: str, amount: float | None = None, currency: str = "USD", purpose: str = "", receipt: str = "",
                    allow_not_significant: bool = False, require_forward: bool = False, record: bool = False) -> dict:
-    """The allocate-check (VTR-1 Agent Profile §06): one call before money moves. ALLOW/REFUSE with every check, the verdict object and a signed 24 h token. Fail closed. record=true logs the check as a public leaf (uses MIZAN_API_KEY)."""
+    """The allocate-check (Agent profile §06): one call before money moves. ALLOW/REFUSE with every check, the verdict object and a signed 24 h token. Fail closed. record=true logs the check as a public leaf (uses MIZAN_API_KEY)."""
     sess = None
     if record:
         try: sess = _session()

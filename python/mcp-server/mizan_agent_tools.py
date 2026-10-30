@@ -326,7 +326,7 @@ def require_credential(agent_or_credential: str, allow_not_significant: bool = F
 
 def allocate_check(agent_or_credential: str, amount=None, currency: str = "USD", purpose: str = "", receipt: str = None,
                    allow_not_significant: bool = False, require_forward: bool = False, session: "MizanSession" = None, record: bool = False) -> dict:
-    """The allocate-check (VTR-1 Agent Profile §06): one call before money moves. Resolves the counterparty, verifies credential, status,
+    """The allocate-check (Agent profile §06): one call before money moves. Resolves the counterparty, verifies credential, status,
     receipt, anchor, log inclusion, provenance class and age; returns ALLOW/REFUSE with every check, the verdict object and a signed 24 h token.
     With a session and record=True the check becomes a public log leaf (proof that you checked). Fail closed."""
     body = {"agent": agent_or_credential, "amount": amount, "currency": currency, "purpose": purpose,

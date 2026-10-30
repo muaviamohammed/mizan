@@ -30,7 +30,7 @@
         "gate",
         "agent-profile"
       ],
-      "description": "VTR-1 Agent Profile §06: resolve the counterparty, verify credential, status, receipt, anchor, log inclusion, provenance class and age; ALLOW or REFUSE with every check and a signed 24 h token. Fail closed.",
+      "description": "Agent profile §06: resolve the counterparty, verify credential, status, receipt, anchor, log inclusion, provenance class and age; ALLOW or REFUSE with every check and a signed 24 h token. Fail closed.",
       "examples": [
         "may I allocate to blackbox-fractional",
         "{\"skill\":\"allocate_check\",\"agent\":\"0xabc...\",\"amount\":10000,\"currency\":\"USDC\"}"
@@ -114,7 +114,7 @@
     },
     {
       "id": "work_check",
-      "name": "Work-check: one signed decision on a committed job before paying (VTR-1/W, declared)",
+      "name": "Work-check: one signed decision on a committed job before paying (work profile, declared)",
       "tags": [
         "work",
         "escrow",

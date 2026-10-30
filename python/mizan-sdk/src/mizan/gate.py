@@ -92,7 +92,7 @@ def require_credential(agent_or_credential: str, *, receipt: str | None = None, 
 
 def allocate_check(agent_or_credential: str, *, amount=None, currency: str = "USD", purpose: str = "", receipt: str | None = None,
                    allow_not_significant: bool = False, require_forward: bool = False, api_key: str | None = None, record: bool = False) -> Decision:
-    """The allocate-check (VTR-1 Agent Profile §06): one call before money moves. Returns a Decision whose .status holds the
+    """The allocate-check (Agent profile §06): one call before money moves. Returns a Decision whose .status holds the
     server's full answer (every check with clause, the verdict object, a signed 24 h token under .status["token"]).
     Keep the token as the reason you allocated. With api_key and record=True the check is logged as a public leaf. Fail closed."""
     body = {"agent": agent_or_credential, "amount": amount, "currency": currency, "purpose": purpose,
