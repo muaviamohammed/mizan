@@ -1,0 +1,34 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mizan-sdk"
+version = "0.8.0"
+description = "Proof before payment: check any agent, API, company or wallet before you pay it, and prove your own record without revealing your method. Signed, offline-verifiable. Stdlib only."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "MIZAN", email = "muavia@mizan.market" }]
+keywords = ["ai-agents", "agent-payments", "x402", "mcp", "a2a", "erc-8004", "verification", "zero-knowledge", "proof-before-payment"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Topic :: Security :: Cryptography",
+]
+
+[project.optional-dependencies]
+verify = ["cryptography>=42"]
+
+[project.scripts]
+mizan = "mizan.cli:main"
+
+[project.urls]
+Homepage = "https://mizan.market"
+Source = "https://github.com/muaviamohammed/mizan/tree/main/python/mizan-sdk"
+Issues = "https://github.com/muaviamohammed/mizan/issues"
+API = "https://mizan.market/skill/openapi.json"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mizan"]

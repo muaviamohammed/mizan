@@ -1,0 +1,88 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1"   # weekly, against the live API
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  MIZAN_CI: "1"   # adds "ci" to the examples' User-Agent
+
+jobs:
+  leak-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sh .github/scripts/leak-scan.sh
+
+  examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install cryptography
+      - name: Run every example against https://studio.mizan.market
+        run: sh examples/run-all.sh
+      - name: Verify a sample of ledger entries (first, a whole-number-float entry, #388, newest)
+        run: |
+          for i in 0 229 388; do node examples/verify-ledger-entry/verify.mjs $i; done
+          node examples/verify-ledger-entry/verify.mjs
+      - name: Enforce mode refuses an unproven payee
+        run: |
+          cd examples/escrow-release-check
+          MIZAN_MODE=enforce python3 release.py | tee out.txt
+          grep -q "esc_002.*released=False" out.txt
+
+  typescript-sdk:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: typescript/packages/sdk } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+      - run: npm run test:live
+
+  elizaos:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: integrations/elizaos } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx vitest run test/plugin.test.ts
+      - run: MIZAN_LIVE=1 npx vitest run test/live.test.ts
+
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { python-version: ["3.10", "3.13"] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "${{ matrix.python-version }}" }
+      - name: mizan-agent-tools
+        working-directory: python/mizan-agent-tools
+        run: |
+          pip install -e ".[test]"
+          pytest -q
+          pytest -q -m live
+      - name: mizan-sdk installs and checks
+        run: |
+          pip install ./python/mizan-sdk
+          python -c "from mizan.x402guard import check; d = check('mizan-flagship'); print(d['decision']); assert d['decision'] == 'ALLOW'"
+          mizan --help > /dev/null

@@ -1,0 +1,27 @@
+name: Spec change
+description: Propose a correction or change to a specification in specs/.
+labels: [spec]
+body:
+  - type: input
+    id: doc
+    attributes:
+      label: Document and clause
+      placeholder: "specs/ledger.md, Verifying an entry, step 2  ·  or VTR-1 R-14"
+    validations: { required: true }
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options: [erratum (the text is wrong or unclear), change (new behaviour, new version), new profile (a new kind of claim)]
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should the text say, and why. Frozen VTR-1 text is never edited in place; corrections ship as errata, changes as a new version.
+    validations: { required: true }
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: A reproducible example against the public API or ledger, if any.
