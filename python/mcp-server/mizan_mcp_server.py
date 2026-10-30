@@ -135,7 +135,7 @@ def standard_clauses() -> dict:
 
 @mcp.tool()
 def era_history() -> dict:
-    """Every engine era (image id, date, status, verifier hashes per OS). Era law: a credential verifies forever under the era that minted it."""
+    """Every engine era (image id, date, status, verifier hashes per OS). Era law: a credential keeps verifying under the era that minted it."""
     return mz.era_history()
 
 

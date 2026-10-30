@@ -213,7 +213,7 @@ def standard_clauses() -> dict:
 
 
 def era_history() -> dict:
-    """Every engine era with image id, date, status and per-OS verifier hashes. Era law: credentials verify forever."""
+    """Every engine era with image id, date, status and per-OS verifier hashes. Era law: credentials keep verifying under the era that minted them."""
     return _get(f"{STUDIO}/api/engine/eras")
 
 
