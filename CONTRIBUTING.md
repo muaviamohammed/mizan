@@ -1,32 +1,27 @@
 # Contributing
 
-Thank you for helping make proof before payment a default.
+Thank you for helping. This repository holds the public side of MIZAN: the specification, thin clients, examples and offline verifiers. The service itself runs at `https://studio.mizan.market`.
 
-## What lives here
+## What we welcome
 
-- **Specifications** (`specs/`, CC BY 4.0). The frozen VTR-1 text is never edited; corrections ship as errata and changes as a new version. Propose changes with the **Spec change** issue template.
-- **SDKs and integrations** (`typescript/`, `python/`, `integrations/`, MIT). Bug fixes, new framework integrations and new language clients are welcome.
-- **Examples and verification** (`examples/`, `verify/`, MIT). Every example must run against the public API with no key; CI runs them all.
+- **Integrations and examples** for a payment rail, marketplace, agent framework or language that is not here yet. Keep examples short (under 20 lines of logic), runnable against the live API with no key, and add them to [`examples/run-all.sh`](./examples/run-all.sh).
+- **Verifier ports** (Go, Rust, Java, ...) of [`verify/`](./verify/): a token check and a ledger-entry check that match the reference output byte for byte.
+- **Specification issues**: anywhere `specs/` disagrees with a live reply, is ambiguous, or could be read two ways. Use the *Specification* issue form.
+- **Bug reports** with the exact request, the reply's `check_id` and the time (UTC).
 
-The prover is not in this repository and is not open source.
+## Rules
 
-## Ground rules
+1. Every number or claim in a document links to something a reader can run or fetch. No hardcoded live counts.
+2. Examples run against the live API and pass `sh examples/run-all.sh` before review.
+3. Code is Apache-2.0. By contributing code you agree it is licensed under Apache-2.0. Changes to `specs/` are proposals: MIZAN maintains the specification text.
+4. Never commit keys, tokens, personal data or binaries.
 
-1. **Every claim true.** Docs state what is live as live and what is not as not. Numbers are read live from an endpoint or left out.
-2. **Public endpoints only.** Examples and tests use `https://studio.mizan.market` without keys. Nothing in CI publishes, mints or writes on anyone's behalf.
-3. **No secrets.** Never commit keys, tokens, `.env` files or personal data. CI scans every push.
-4. **Verify, don't trust.** New verification code ships with a test that recomputes from public data.
-5. **Small pull requests**, one change each, with a clear description of what changed and how you tested it.
-
-## Running the checks
+## Development
 
 ```bash
-sh examples/run-all.sh                                                  # every example, live
-(cd typescript/packages/sdk && npm ci && npm run typecheck && npm test)
-(cd integrations/elizaos && npm ci && npx tsc --noEmit && npx vitest run test/plugin.test.ts)
-(cd python/mizan-agent-tools && pip install -e ".[test]" && pytest -q)
+sh examples/run-all.sh                                     # everything, live
+python3 packages/python/tests/test_live.py                 # Python client
+cd packages/typescript && npm install && npm test          # TypeScript client
 ```
 
-## Releases
-
-Package releases (npm, PyPI, the MCP registry) are made by the maintainers only. Do not push tags.
+Questions: open a discussion issue, or write to the contact on <https://mizan.market/contact/>.

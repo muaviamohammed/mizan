@@ -2,23 +2,20 @@
 
 ## Reporting a vulnerability
 
-Email **muavia@mizan.market** with the subject line `SECURITY`. Please do not open a public issue for a suspected vulnerability.
+Please report security issues privately. Do not open a public issue.
 
-Include what you found, how to reproduce it, and what an attacker could do with it. We aim to acknowledge reports promptly and keep you informed until the issue is resolved. We credit reporters who wish to be named.
+- Contact: the address in <https://mizan.market/.well-known/security.txt>
+- Policy: <https://mizan.market/security/>
+
+Include what you found, how to reproduce it, and the `check_id` or ledger index involved if there is one. We acknowledge reports and keep you informed until the issue is resolved.
 
 ## In scope
 
-- Anything that makes a check return ALLOW when it should not, or a signature or ledger proof verify when it should not.
-- Forged, replayed or mis-bound signed answers, tokens or receipts.
-- Inconsistencies between the published ledger head, its inclusion proofs, consistency proofs and outside timestamps.
-- A credential bundle that the published verifier accepts but should refuse.
-- Flaws in the code in this repository (SDKs, integrations, examples, verification libraries).
+- Anything that makes a forged, altered or expired verdict, token, attestation or price message verify.
+- A ledger entry that can be changed, removed or backdated without detection.
+- A path by which a check returns ALLOW for a subject whose record does not meet the stated bar.
+- Bugs in the clients and verifiers in this repository.
 
-## Out of scope
+## Keys
 
-- Volume-based denial of service against the public API.
-- Reports that only restate the published honest boundary (for example, that the count on a past record is a floor).
-
-## Key compromise
-
-MIZAN's signing keys rotate only by the published ceremony (<https://mizan.market/standard/continuity/>). A compromised key is revoked by a signed statement from the pre-committed successor key plus a ledger leaf. Always verify against <https://studio.mizan.market/.well-known/mizan-keys.json>.
+Published keys: <https://studio.mizan.market/.well-known/mizan-keys.json>. Keys rotate only by a published ceremony ([`specs/signed-verdict.md`](./specs/signed-verdict.md)); a compromised key is revoked by a signed statement from its successor plus a ledger entry.

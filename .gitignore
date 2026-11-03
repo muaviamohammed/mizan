@@ -1,15 +1,7 @@
 node_modules/
 dist/
-build/
-*.egg-info/
 __pycache__/
-.pytest_cache/
+*.egg-info/
+build/
 .venv/
-venv/
-.env
-.env.*
 .DS_Store
-*.bundle
-*.csv
-mizan-verifier-*
-SHA256SUMS.txt

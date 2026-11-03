@@ -1,0 +1,15 @@
+name: Specification
+description: specs/ disagrees with a live reply, is ambiguous, or could be read two ways.
+labels: [spec]
+body:
+  - type: input
+    id: doc
+    attributes: { label: Document and section, placeholder: "specs/signed-verdict.md, section 2" }
+    validations: { required: true }
+  - type: textarea
+    id: issue
+    attributes: { label: The problem, description: "Quote the text. If a live reply differs, paste the relevant fields." }
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes: { label: Proposed wording }

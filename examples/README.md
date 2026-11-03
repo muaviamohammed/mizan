@@ -1,18 +1,19 @@
 # Examples
 
-Every example runs against the public API (`https://studio.mizan.market`) with no key and no account, and CI runs all of them on every push. Node 20+ and Python 3.9+; no dependencies beyond `cryptography` for the Python signature step and `jq` for the shell one.
+Each example is a few lines against the live API (`https://studio.mizan.market`): no key, no account. Python 3.9+ with `cryptography`; the TypeScript quickstart needs Node 22.6+ (`--experimental-strip-types`) or any TypeScript runner.
 
-| Example | What it shows | Run |
+| Example | Shows | Run |
 |---|---|---|
-| [`check-before-pay`](./check-before-pay/) | An agent checks a counterparty before paying it, and verifies the signed answer on its own machine. | `./check.sh` · `node --experimental-strip-types check.ts` · `python3 check.py` |
-| [`escrow-release-check`](./escrow-release-check/) | An escrow asks MIZAN before releasing a milestone. Advise mode: the release proceeds and the signed answer is attached; if MIZAN is unreachable, the release still proceeds (fail-open). `MIZAN_MODE=enforce` releases only on a verified ALLOW. | `python3 release.py` · `node release.mjs` |
-| [`verify-ledger-entry`](./verify-ledger-entry/) | Verify any ledger entry: recompute it, fold it to the signed head (RFC 6962), check the Ed25519 head signature, apply the stamp coverage rule. In the browser or in Node. | open `index.html` · `node verify.mjs 388` |
-| [`pin-a-requirement`](./pin-a-requirement/) | Write a bar in plain words, read it back, recompute its hash locally and pin it. Nothing is published. | `python3 pin.py` · `node pin.mjs` |
+| [`quickstart`](./quickstart/) | One check, three languages. | `sh check.sh` · `python3 check.py` · `node --experimental-strip-types check.ts` |
+| [`escrow-release-guard`](./escrow-release-guard/) | Advise mode: the release always proceeds and the signed verdict is logged. `MIZAN_MODE=enforce` releases only on a verified ALLOW. | `python3 release.py` |
+| [`x402-payment-check`](./x402-payment-check/) | Check the `payTo` in a seller's 402 terms before signing the payment. | `python3 pay.py` |
+| [`marketplace-listing-gate`](./marketplace-listing-gate/) | A plain-words bar; ALLOW lists, REFUSE hides with a proof request. | `python3 gate.py` |
+| [`agent-hire`](./agent-hire/) | One agent hires another on a bar, and verifies the signed token itself. | `python3 hire.py` |
+| [`model-eval-bar`](./model-eval-bar/) | The same counted record against two bars: ALLOW, then REFUSE with the gap. | `python3 bar.py` |
+| [`get-counted`](./get-counted/) | The payee side: claim, link your endpoint, enrol. | `python3 get_counted.py <your endpoint>` |
 
-Run them all from the repo root:
+Run every example and verifier at once (CI does this daily):
 
 ```bash
 sh examples/run-all.sh
 ```
-
-Requests from these examples identify themselves with the `User-Agent` `mizan-examples/1 (+https://github.com/muaviamohammed/mizan)`.

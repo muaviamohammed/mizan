@@ -1,208 +1,195 @@
 # MIZAN
 
-**MIZAN is the open standard for proof before payment.** It aims to cover every kind of claim (models, agents, machines, data) and every grade of evidence (declared, recorded, proven), so no money moves to a machine on a result nobody counted.
+### The second ledger of the economy.
 
-*x402 lets machines pay. MIZAN proves they earned it.*
+**Agents can prove they paid. MIZAN proves they earned it.**
+
+A signed yes or no on whether an AI agent's results are real, before you pay it.
+
+[![checks served](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fstudio.mizan.market%2Fapi%2Fpublic%2Fstats&query=%24.checks_served_floor&label=checks%20served&suffix=%2B&color=111318)](https://studio.mizan.market/api/public/stats)
+[![ledger entries](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fstudio.mizan.market%2Fapi%2Flog%2Fhead&query=%24.size&label=ledger%20entries&color=111318)](https://studio.mizan.market/api/log/head)
+[![measures](https://img.shields.io/badge/measures-live%20list-111318)](https://studio.mizan.market/api/profiles)
+[![time to first ALLOW](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fstudio.mizan.market%2Fapi%2Fpublic%2Fttfa&query=%24.seconds&label=time%20to%20first%20ALLOW&suffix=%20s&color=1E6B45)](https://studio.mizan.market/api/public/ttfa)
+[![try-me on MIZAN](https://studio.mizan.market/badge/try-me.svg)](https://studio.mizan.market/badge/try-me)
+
+Every badge above is read from the live API when this page loads. Click one to see the signed JSON behind it.
+
+---
+
+## Check before you pay: 60 seconds, free, no key
 
 ```bash
-# an agent, before it pays another one: free, no key, signed
-curl https://studio.mizan.market/api/check/mizan-flagship
-# {"decision": "ALLOW", "basis": "proven", "evidence_rung": "PROVEN", "token": "eyJhbGciOiJFZERTQSIs…", …}
-```
-
-```ts
-const res = await fetch(`https://studio.mizan.market/api/check/${payee}`);
-const { decision, basis } = await res.json();          // Ed25519-signed; verify offline with verify/js
-if (decision !== "ALLOW") throw new Error(`MIZAN: ${basis}`);
-await pay(payee, amount);                              // only on ALLOW
+curl -s https://studio.mizan.market/api/check/try-me
+# {"decision": "ALLOW", "evidence_rung": "PROVEN", "token": "eyJhbGciOiJFZERTQSIs…", "explain": "…", "next": {…}, …}
 ```
 
 ```python
 import json, urllib.request
-d = json.load(urllib.request.urlopen(f"https://studio.mizan.market/api/check/{payee}"))
-if d["decision"] != "ALLOW": raise SystemExit(f"MIZAN: {d['basis']}")   # signed; verify with verify/python
-pay(payee, amount)                                                       # only on ALLOW
+
+d = json.load(urllib.request.urlopen("https://studio.mizan.market/api/check/try-me"))
+print(d["decision"], d["evidence_rung"])      # ALLOW PROVEN
+if d["decision"] != "ALLOW":
+    raise SystemExit("do not pay")
 ```
 
-See [`examples/`](./examples/) for the full, runnable versions (CI runs every one against the live API).
-
-## What it checks
-
-Not one kind of claim. Every check answers the same object, the [counted claim](./specs/counted-claim.md): result, measure, count, evidence, requirement, verdict. Each kind of claim is a versioned **profile**: 19 live, 1 in draft, served at `GET https://studio.mizan.market/api/profiles`.
-
-**AI models and agents**
-
-| Profile | The question it answers |
-|---|---|
-| `model-evaluation` | What a model really scores |
-| `model-retrain` | Every retrain is a trial *(draft)* |
-| `service-reliability` | How reliable its service really is |
-| `delivery-record` | What happened after others paid it |
-| `denominator-reputation` | Of all its receipted jobs with independent counterparties, how many succeeded |
-| `mandate-conduct` | Whether it stayed inside its own rules |
-| `outcome-meter` | Billed outcomes match all conversations, under the rule fixed in advance |
-| `forecast-accuracy` | How accurate its forecasts really are |
-
-**Money**
-
-| Profile | The question it answers |
-|---|---|
-| `earned-performance` | What it really earned. Trading records, under [VTR-1](./specs/vtr-1/) |
-| `yield` | What yield a vault actually paid (advertised vs realised) |
-| `signal-calls` | What a signal seller's calls actually did (every call counted) |
-| `earnings-claim` | What typical earners actually earn (every earner counted) |
-| `custody` | What a custodian or bridge says it holds (never proof of reserves) |
-
-**Machines, chains and institutions**
-
-| Profile | The question it answers |
-|---|---|
-| `depin-liveness` | Is the node really there and answering (counted challenges) |
-| `onchain-event` | That it happened on-chain (settled, succeeded, confirmed) |
-| `token-structure` | How a token is built: who can change it, mint it or freeze it |
-| `random-draw` | Whether the operator's logged draws fit its committed odds (operator-reported) |
-| `certification` | What it is certified for, by whom, until when |
-| `rulebook` | Which rules were in force, and when they changed |
-| `reporter-quality` | How often a security reporter's findings hold up |
-
-A real one, not a trading record: ledger entry [#388](https://studio.mizan.market/api/log/proof/388) is a model evaluation, 50 tasks registered before their outcomes and sealed, first-try success 70%. Check it on your machine with [`examples/verify-ledger-entry`](./examples/verify-ledger-entry/).
-
-Every answer states its evidence grade: [DECLARED, RECORDED or PROVEN](./specs/evidence-ladder.md). A live profile is one MIZAN checks today. It does not mean every claim under it is proven in zero knowledge, and the answer always says which grade it is.
-
-## Installation
-
-<details open>
-<summary><b>MCP</b> (no install)</summary>
-
-```bash
-claude mcp add --transport http mizan https://studio.mizan.market/mcp
+```ts
+const d = await (await fetch("https://studio.mizan.market/api/check/try-me")).json();
+console.log(d.decision, d.evidence_rung);     // ALLOW PROVEN
+if (d.decision !== "ALLOW") throw new Error("do not pay");
 ```
 
-```json
-{ "mcpServers": { "mizan": { "url": "https://studio.mizan.market/mcp" } } }
-```
+`try-me` is MIZAN's sandbox subject: a stable, proven record every integrator checks first. Replace it with whoever you are about to pay: an agent id, a domain, an API, MCP or A2A endpoint, a model (`model:<org>/<name>`), or a wallet. Every reply is signed; [`verify/`](./verify/) checks the signature on your machine without calling MIZAN.
 
-The front door lists `check`, `prove` and `more`; every tool is at `https://studio.mizan.market/mcp/full`. Local stdio build: [`python/mcp-server`](./python/mcp-server/).
-
-</details>
-
-<details>
-<summary><b>TypeScript</b></summary>
-
-> See [`typescript/`](./typescript/) for the SDK, the x402 guard and the elizaOS plugin.
-
-```bash
-cd typescript/packages/sdk && npm ci && npm run build      # npm release pending
-```
-
-```js
-import { guardFetch } from "./integrations/x402-guard/mizan-x402-guard.mjs";   // zero dependencies
-const pay = guardFetch(fetchWithPayment, { mode: "advise" });                  // later: { mode: "enforce" }
-```
-
-</details>
-
-<details>
-<summary><b>Python</b></summary>
-
-> See [`python/`](./python/) for the SDK, the LangChain / CrewAI tools and the MCP server.
-
-```bash
-pip install https://mizan.market/skill/mizan_sdk-0.8.0-py3-none-any.whl
-pip install "git+https://github.com/muaviamohammed/mizan#subdirectory=python/mizan-agent-tools"
-```
+Now set your own bar, in plain words:
 
 ```python
-from mizan.x402guard import check, guard
-check("mizan-flagship")["decision"]          # "ALLOW"
-pay = guard(my_paying_get, mode="advise")    # inside an x402 payment
+from mizan_check import check            # pip install "git+https://github.com/muaviamohammed/mizan#subdirectory=packages/python"
+
+d = check("model:openai/gpt-oss-20b", rule="pass@1 at least 60% over at least 20 tasks")
+print(d["decision"], d["requirement"]["shown_back"])
 ```
 
-</details>
+## Get your agent counted: three calls
 
-<details>
-<summary><b>HTTP / any language</b></summary>
+The other side of the check. When someone checks your agent before paying it, this is what turns a REFUSE (no record yet) into a counted answer.
 
-`GET https://studio.mizan.market/api/check/{subject}` · `POST https://studio.mizan.market/api/check {"agent": "…", "amount"?: …, "requirement"?: "req_…@1"}` · OpenAPI: <https://mizan.market/skill/openapi.json> · A2A: `https://studio.mizan.market/a2a`.
+```bash
+KEY=$(curl -s -X POST https://studio.mizan.market/api/agents/claim -H 'content-type: application/json' \
+  -d '{"name":"my-agent"}' | python3 -c 'import json,sys; print(json.load(sys.stdin)["api_key"])')   # 1. identity, key shown once
 
-</details>
+curl -s -X POST https://studio.mizan.market/api/link/challenge -H "authorization: Bearer $KEY" \
+  -H 'content-type: application/json' -d '{"identifier":"https://api.yours.example/v1/chat/completions"}'
+# 2. serve the returned nonce at https://api.yours.example/.well-known/mizan-challenge, then POST /api/link/complete
 
-## Principles
+curl -s -X POST https://studio.mizan.market/api/eval/enroll -H "authorization: Bearer $KEY" \
+  -H 'content-type: application/json' -d '{"url":"https://api.yours.example/v1/chat/completions","adapter":"openai"}'
+# 3. enrolled: MIZAN runs sealed tasks at times it picks and counts every try
+```
 
-- **Open standard.** The standard and these specifications are CC BY 4.0, free to implement by anyone, including competitors of its steward. MIZAN never asks to be the only party you rely on: every answer is signed with a published key, every ledger entry folds to a signed and externally stamped head, every credential re-verifies offline with a published verifier.
-- **Count before outcome.** A try counts only if it was registered before its outcome existed. First-try results are shown beside best-of results, with the count.
-- **Prove without revealing.** A proven claim is a zero-knowledge proof. The model, code, prompts and strategy never leave their owner's machine.
-- **The buyer writes the bar.** Plain words in, a versioned rule back, read back and fixed by hash before anyone is checked. Words that cannot be bound are listed, never guessed.
-- **Refusals are published.** A refusal is published beside a pass, MIZAN's own included. That is what makes a pass worth something.
-- **Neutral.** Checks are free and no fee depends on a verdict. MIZAN never holds, routes or releases funds.
+| Leaves your machine | Never leaves your machine |
+|---|---|
+| Your endpoint URL, and the answers it gives to sealed tasks | Your prompts, weights, code or strategy |
+
+You cannot pick, retry or stop a run once it starts, and neither can MIZAN: that is what makes the count worth something. Adapters: `openai` (chat completions), `mcp`, `a2a`. The same path in Python is [`examples/get-counted`](./examples/get-counted/); in the browser, <https://mizan.market/get-counted/>. Show your record anywhere with a live badge: `https://studio.mizan.market/badge/<your-agent-id>.svg`.
 
 ## How it works
 
-Every check answers one **counted claim**, in six parts ([spec](./specs/counted-claim.md)):
-
-| # | Part | What it fixes | Example (ledger entries #385 to #388) |
-|---|---|---|---|
-| 01 | **Result** | What is claimed | 70% first-try success |
-| 02 | **Measure** | Measured how, on what | Code reading: fifty fixed short programs, answers sealed, graded independently |
-| 03 | **Count** | Every try registered before its outcome | 50 of 50 attempts; nothing retried, nothing dropped |
-| 04 | **Evidence** | Its rung: DECLARED · RECORDED · PROVEN | RECORDED: declared, run and sealed in the public ledger |
-| 05 | **Requirement** | The buyer's bar, in the buyer's words, fixed first | first-try success at least 90% over at least 50 tasks |
-| 06 | **Verdict** | ALLOW or REFUSE, signed, with its basis | REFUSE: 70% is below 90% |
-
+```mermaid
+flowchart LR
+  subgraph payee [The agent being paid]
+    M["1 · Measure<br/>a fixed rule, declared first"] --> C["2 · Count<br/>every try, before its outcome"]
+    C --> P["3 · Prove<br/>the result; the method stays private"]
+  end
+  subgraph payer [The one paying]
+    B["your bar<br/>plain words → exact rule"] --> K
+  end
+  P --> K["4 · Check<br/>signed ALLOW / REFUSE"]
+  K -->|ALLOW| PAY["payment released"]
+  K -->|REFUSE| PR["held · proof request to forward"]
+  C -.-> L[("public ledger<br/>append-only · signed")]
+  K -.-> L
 ```
-agent ──check(payee, bar)──▶ MIZAN ──▶ count · evidence rung · requirement ──▶ ALLOW / REFUSE (signed)
-                                          │
-                                          └─▶ public ledger: RFC 6962 leaf · signed head · hourly outside stamps
+
+1. **Measure.** Say what counts: a fixed rule, declared before the first try.
+2. **Count.** Every try is registered on the public ledger before its outcome exists. No best-of picking.
+3. **Prove.** The result is proven; the model, prompts and code stay private.
+4. **Check.** Anyone asks, free, and gets a signed yes or no against their own bar before money moves.
+
+The full standard, six parts (result, measure, count, proof, bar, verdict), is in [`specs/`](./specs/).
+
+### A real one
+
+Public ledger entries #385 to #388: an AI model ran 50 tasks declared before the first one ran, so there was no best try to show. **70% first-try pass rate, 35 of 50, every attempt counted.**
+
+- **Score and count: PROVEN.** Every attempt re-graded inside a zero-knowledge proof against the sealed answers.
+- **Which model answered: RECORDED.** MIZAN called the endpoint and committed the reply.
+
+The reply says both, in fields `grading` and `inference_provenance`: <https://studio.mizan.market/api/eval/run/er_776c0a769ccedfbd/grade-proof>. A bar of 60% returns ALLOW; a bar of 90% returns REFUSE. Verify entry #388 yourself: `python3 verify/verify_entry.py 388`.
+
+## In your payment path
+
+You choose the failure mode.
+
+| Mode | On ALLOW | On REFUSE, timeout, error, bad signature, expiry |
+|---|---|---|
+| **advise** | pays, logs the signed verdict | pays, logs the verdict or "unverifiable". Never blocks. |
+| **enforce** | pays only if the token verifies against the published key | does not pay (fail-closed) |
+
+```python
+from mizan_check import guard
+pay = guard(release_escrow, mode="advise", on_verdict=audit_log)   # later: mode="enforce"
 ```
 
-A REFUSE carries a forwardable proof request: when the other side proves itself, the next check returns ALLOW.
-
-## Live, not a proposal
-
-| | |
-|---|---|
-| Public ledger, verifiable in your browser | <https://mizan.market> (click any row) · head: <https://studio.mizan.market/api/log/head> |
-| Live counts (proofs, refusals, steps proven, checks served) | <https://studio.mizan.market/api/public/stats> |
-| Registry of every credential, refusals included | <https://mizan.market/registry/> · <https://studio.mizan.market/api/registry> |
-| Published keys | <https://studio.mizan.market/.well-known/mizan-keys.json> |
-| Verifier binaries + SHA-256 sums | <https://mizan.market/verify/> |
-| The standard | [`specs/`](./specs/): the counted claim, evidence ladder, requirement language, ledger, signatures, and the profiles. Trading records: VTR-1, frozen 2026-08-01, [SSRN 7215664](https://ssrn.com/abstract=7215664) · <https://mizan.market/standard/> |
-| For agents | [`llms.txt`](https://mizan.market/llms.txt) · [`SKILL.md`](https://mizan.market/skill/SKILL.md) · [`openapi.json`](https://mizan.market/skill/openapi.json) |
+The hosted release guard does enforce on MIZAN's side: a hold pins one exact rule version and hash; release is authorized only on a live ALLOW against it; REFUSE, timeout, error, expiry, cancel or a second release attempt return a signed denial; one authorization per hold, redeemable once. MIZAN never holds or moves the money ([rules](https://studio.mizan.market/api/release/program)). Response time and time to a first ALLOW are measured live: <https://mizan.market/service-level/>.
 
 ## Where it plugs in
 
+One rule, written once, enforced at every hook with the same id and the same hash.
+
+| Hook | Who | How | Run it |
+|---|---|---|---|
+| **Release guard** | escrow, payment rails, settlement | a hold releases only on a signed ALLOW | [`examples/escrow-release-guard`](./examples/escrow-release-guard/) |
+| **x402 payment field** | agents paying for APIs | check the `payTo` in the 402 terms; `accepts[i].extra.mizan` names the bar | [`examples/x402-payment-check`](./examples/x402-payment-check/) |
+| **Marketplace listing** | agent marketplaces, leaderboards | ALLOW lists, REFUSE hides and returns a proof request | [`examples/marketplace-listing-gate`](./examples/marketplace-listing-gate/) |
+| **Platform deploy** | agent platforms and frameworks | one setting: `MIZAN_REQUIRE=req_…@v#<hash>` | [`specs/requirement-language.md`](./specs/requirement-language.md#one-rule-every-surface) |
+| **Questionnaire** | allocators, insurers, enterprise buyers | one plain-words clause with a verify link | [`specs/requirement-language.md`](./specs/requirement-language.md#one-rule-every-surface) |
+| **Code gate** | contracts, configs, CI | a seven-field signed message, verified with no call out | [`specs/signed-verdict.md`](./specs/signed-verdict.md) |
+| **Agent hire** | agents hiring agents | check, keep the token as the reason you hired | [`examples/agent-hire`](./examples/agent-hire/) |
+| **Model evaluation bar** | buyers of models | first-try score over every counted task | [`examples/model-eval-bar`](./examples/model-eval-bar/) |
+
+Also over MCP (`claude mcp add --transport http mizan https://studio.mizan.market/mcp`, see [`packages/mcp`](./packages/mcp/)), A2A (`https://studio.mizan.market/a2a`) and OpenAPI (<https://mizan.market/skill/openapi.json>).
+
+## Evidence grades
+
+Every answer states its grade. A lower grade is never shown as a higher one, and unknown is never zero.
+
+| Grade | Means |
+|---|---|
+| **DECLARED** | They say so. Never produces ALLOW on its own. |
+| **RECORDED** | Logged on the public ledger as it happened, source named. |
+| **PROVEN** | Checked by math. Re-verifiable offline; the method stays private. |
+
+## The record works for you
+
 | | |
 |---|---|
-| **x402** | The [guard](./integrations/x402-guard/) checks the payee inside the payment step: advise or enforce. |
-| **AP2** | Check before the payment mandate is signed; keep the signed token with the mandate. [Integration point](./integrations/ap2-acp.md). |
-| **ACP** | Check the merchant before the checkout completes. [Integration point](./integrations/ap2-acp.md). |
-| **MCP** | Hosted server at `https://studio.mizan.market/mcp`. |
-| **A2A** | `https://studio.mizan.market/a2a` · [agent card](./integrations/a2a/). |
-| **ERC-8004** | Verdicts in ERC-8004 feedback and validation shapes; EIP-712 receipts checked on-chain by [`MizanProof.sol`](./integrations/erc8004/). |
-| **elizaOS** | [`plugin-mizan`](./integrations/elizaos/). |
-| **LangChain / LangGraph** | [`mizan-agent-tools`](./python/mizan-agent-tools/). |
-| **CrewAI** | [`mizan-agent-tools`](./python/mizan-agent-tools/). |
+| **Priced** | Every verdict carries a price signal: a score, a tier and a relative limit, from a published function anyone re-runs. [Spec](./specs/price-signal.md) · <https://mizan.market/pricing-signal/> |
+| **Contestable** | Any verdict can be disputed by the subject or the requirer, on the record; nothing is deleted. [Spec](./specs/disputes.md) · <https://mizan.market/disputes/> |
+| **Reusable** | A bar met once is accepted by the next requirer in one call. [Spec](./specs/reliance.md) · <https://mizan.market/reliance/> |
 
-Status of each, stated plainly: [`integrations/README.md`](./integrations/README.md).
+## Questions
+
+**What stops someone counting 20 agents and showing the best one?**
+Each identity has its own record, and you check the exact agent you are paying, not a sibling. Every reply carries `standing`: how old the identity is and how many tries it has been counted for, with unknowns marked unknown. A fresh identity is `unrated` on the price signal until it has at least 30 counted tries. Your bar can require a minimum count, a minimum record age, a minimum evidence grade, a verified company domain or a price tier.
+
+**My counterparties are not counted yet.**
+Start in advise mode: nothing blocks, and every payment carries the signed verdict. Cap exposure to `unrated` counterparties in your own policy (the price signal's relative limit for `unrated` is 0). Every REFUSE carries a proof request you can forward; when the other side proves your bar, your next check returns ALLOW.
+
+**Who runs this, and what if it is down?**
+Mizan Verification, Inc. runs the service. You choose the failure mode: advise proceeds, enforce holds. Answers you already have stay verifiable offline with the published key; tokens are valid for 24 hours. The public ledger is append-only and stamped hourly by two outside timestamp authorities, so neither you nor MIZAN has to trust MIZAN's word about the past. Service level is measured live at <https://mizan.market/service-level/>.
+
+**What does MIZAN claim?**
+Only what was counted and proven against a stated bar: a named, measured fact about a record. Never that a system is safe, aligned or honest in general, never a forecast, never advice about a payment. A REFUSE for "no record" says nothing against anyone. The relying party keeps responsibility.
 
 ## Repository
 
 ```
-specs/          the counted claim, evidence ladder, requirement language, ledger, signatures, profiles incl. VTR-1 (CC BY 4.0)
-typescript/     SDK (mizan-agent-tools)
-python/         SDK (mizan-sdk), LangChain / CrewAI tools, MCP server (stdio)
-integrations/   x402 guard, elizaOS, A2A, ERC-8004, AP2 / ACP, LangChain, CrewAI
-examples/       check-before-pay · escrow-release-check · verify-ledger-entry · pin-a-requirement
-verify/         offline verification: published keys, ledger proofs, verifier binaries
-docs/           quickstart, concepts, verify, FAQ, honest boundary
+specs/       the Counted Claim Standard: counted claim, grades, check API, signed verdict, bar language, price, disputes, reliance, ledger
+packages/    python/ and typescript/ clients (check, verify offline, guard, get counted) · mcp/ config
+examples/    quickstart · escrow release guard · x402 payment check · marketplace listing gate · agent hire · model eval bar · get counted
+verify/      offline verification of tokens and ledger entries; links to the published verifier binaries
 ```
 
-## Honest boundary
+Every quickstart and example runs against the live API: `sh examples/run-all.sh`.
 
-MIZAN proves named, measurable facts about the past. On a past record the count is a floor (what was registered); on a forward record, registered before any outcome exists, the count is complete from that point on. A lower rung is never shown as a higher one, and unproven is not false. MIZAN never claims the future, intent, or that any system is safe, aligned or honest in general. It never holds funds. The prover is private; the standard, specifications, SDKs, integrations and examples here are open. More: [`docs/honest-boundary.md`](./docs/honest-boundary.md).
+## Links
 
-## License
+[mizan.market](https://mizan.market) · [What will you count?](https://mizan.market/count/) · [Require it](https://mizan.market/require/) · [Price signal](https://mizan.market/pricing-signal/) · [Disputes](https://mizan.market/disputes/) · [Reliance](https://mizan.market/reliance/) · [Service level](https://mizan.market/service-level/) · [Public ledger](https://mizan.market/log/) · [SKILL.md](https://mizan.market/skill/SKILL.md) · [OpenAPI](https://mizan.market/skill/openapi.json)
 
-Code: [MIT](./LICENSE). Specifications in [`specs/`](./specs/): [CC BY 4.0](./LICENSE-SPEC). Security reports: [`SECURITY.md`](./SECURITY.md). Contributing: [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+## Licence
 
-MIZAN is a verification and technology provider. A decision is about a counterparty's record, never advice about a payment; the relying party keeps responsibility.
+Code in `packages/`, `examples/` and `verify/`: [Apache-2.0](./LICENSE). Specifications in `specs/`: Copyright © 2026 Mizan Verification, Inc. All rights reserved. Anyone may implement and verify against this specification free of charge ([`specs/LICENSE.md`](./specs/LICENSE.md)).
+
+Security: [`SECURITY.md`](./SECURITY.md) · Contributing: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
+
+MIZAN is a verification and technology provider. It does not custody, execute, allocate or advise on capital.

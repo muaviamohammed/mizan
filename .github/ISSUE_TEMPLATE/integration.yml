@@ -1,20 +1,17 @@
-name: Integration request
-description: Ask for (or offer) MIZAN in a framework, protocol, wallet or platform.
+name: Integration
+description: Propose an example or client for a payment rail, marketplace, agent framework or language.
 labels: [integration]
 body:
   - type: input
     id: target
+    attributes: { label: Rail, platform, framework or language }
+    validations: { required: true }
+  - type: dropdown
+    id: hook
     attributes:
-      label: Framework, protocol or platform
-      placeholder: "e.g. a wallet SDK, an agent framework, a payment protocol"
+      label: Hook
+      options: [release guard, x402 payment field, marketplace listing, platform deploy, questionnaire, code gate, other]
     validations: { required: true }
   - type: textarea
-    id: moment
-    attributes:
-      label: Where should the check happen?
-      description: The moment just before value moves (pay, hire, release, allocate, list).
-    validations: { required: true }
-  - type: textarea
-    id: notes
-    attributes:
-      label: Anything else
+    id: sketch
+    attributes: { label: Sketch, description: "Where the check goes, what happens on ALLOW and on REFUSE, advise or enforce." }

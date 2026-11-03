@@ -36,7 +36,7 @@ Base URL: `https://studio.mizan.market`. CORS is open, so a browser can verify d
 3. Verify `head.signature.sig_b64` (Ed25519) over `canon({alg, log, root, size, ts})` with the key named by `head.signature.key_id` in <https://studio.mizan.market/.well-known/mizan-keys.json>.
 4. **Stamp coverage rule:** the entry is covered by an outside stamp when `head.anchor.rfc3161_time_utc` is set and `head.anchor.head_size > i`. Otherwise it is newer than the last checkpoint and is covered by the next hourly one.
 
-Reference implementations: [`verify/js/mizan-verify.mjs`](../verify/js/mizan-verify.mjs), [`verify/python/mizan_verify.py`](../verify/python/mizan_verify.py), and the standalone browser page in [`examples/verify-ledger-entry`](../examples/verify-ledger-entry/).
+Reference implementations: [`verify/mizan-verify.mjs`](../verify/mizan-verify.mjs) and [`verify/verify_entry.py`](../verify/verify_entry.py). In the browser: <https://mizan.market/log/> (click any row).
 
 ## Operative time
 

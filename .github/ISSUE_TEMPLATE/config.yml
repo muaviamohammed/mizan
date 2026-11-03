@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Report a security issue (private)
-    url: https://github.com/muaviamohammed/mizan/blob/main/SECURITY.md
-    about: Email muavia@mizan.market. Please do not open a public issue for a vulnerability.
+    url: https://mizan.market/.well-known/security.txt
+    about: Please do not open a public issue for a vulnerability. Use the contact in security.txt.
   - name: Machine-readable docs
-    url: https://mizan.market/llms.txt
-    about: llms.txt, SKILL.md and the OpenAPI document for agents.
+    url: https://mizan.market/skill/SKILL.md
+    about: SKILL.md, the OpenAPI document and llms.txt, for agents.

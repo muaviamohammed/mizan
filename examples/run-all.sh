@@ -1,20 +1,20 @@
 #!/bin/sh
-# Run every example against the public MIZAN API. Exits non-zero on the first failure.
+# Run every quickstart, example and verifier against the live API. Exits non-zero on the first failure.
+# Needs: Python 3.9+ with `cryptography`, Node 20+ (Node 22.6+ for the .ts quickstart).
 set -eu
-cd "$(dirname "$0")"
-NODE_TS="node --experimental-strip-types --no-warnings"
-step() { printf '\n\033[1m▶ %s\033[0m\n' "$*"; }
-
-step "check-before-pay · curl";        sh check-before-pay/check.sh
-step "check-before-pay · TypeScript";  (cd check-before-pay && $NODE_TS check.ts)
-step "check-before-pay · Python";      (cd check-before-pay && python3 check.py)
-step "check-before-pay · a published refusal"; (cd check-before-pay && python3 check.py honest-fail-spy-sharadar)
-step "escrow-release-check · Python (advise)"; (cd escrow-release-check && python3 release.py)
-step "escrow-release-check · Node (advise)";   (cd escrow-release-check && node release.mjs)
-step "verify-ledger-entry · newest";   (cd verify-ledger-entry && node verify.mjs)
-step "verify-ledger-entry · #388";     (cd verify-ledger-entry && node verify.mjs 388)
-step "verify-ledger-entry · Python";   python3 ../verify/python/mizan_verify.py 229
-step "pin-a-requirement · Python";     (cd pin-a-requirement && python3 pin.py)
-step "pin-a-requirement · Node";       (cd pin-a-requirement && node pin.mjs)
-step "x402 guard · local stand-in seller"; (cd ../integrations/x402-guard && node demo.mjs)
-printf '\nall examples ran\n'
+cd "$(dirname "$0")/.."
+step() { printf '\n== %s\n' "$*"; }
+step "quickstart · curl";        sh examples/quickstart/check.sh
+step "quickstart · Python";      python3 examples/quickstart/check.py
+step "quickstart · TypeScript";  node --experimental-strip-types --no-warnings examples/quickstart/check.ts
+step "escrow release guard · advise";  python3 examples/escrow-release-guard/release.py
+step "escrow release guard · enforce"; MIZAN_MODE=enforce python3 examples/escrow-release-guard/release.py
+step "x402 payment check";       python3 examples/x402-payment-check/pay.py
+step "marketplace listing gate"; python3 examples/marketplace-listing-gate/gate.py
+step "agent-to-agent hire";      python3 examples/agent-hire/hire.py
+step "model evaluation bar";     python3 examples/model-eval-bar/bar.py
+step "verify a token offline";   python3 verify/verify_token.py
+step "verify a ledger entry · Python"; python3 verify/verify_entry.py 388
+step "verify a ledger entry · Node";   node verify/verify-entry.mjs
+step "python package tests";     python3 packages/python/tests/test_live.py
+printf '\nall examples ran against the live API\n'

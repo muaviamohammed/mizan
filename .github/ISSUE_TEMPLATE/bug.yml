@@ -1,27 +1,17 @@
 name: Bug
-description: Something in an SDK, integration, example or verification library does not work.
+description: A client, example or verifier in this repository does something wrong, or the live API answers unexpectedly.
 labels: [bug]
 body:
-  - type: dropdown
-    id: area
-    attributes:
-      label: Area
-      options: [examples, verify (js or python), typescript SDK, python SDK, LangChain / CrewAI tools, MCP server, x402 guard, elizaOS plugin, A2A / ERC-8004, docs]
-    validations: { required: true }
   - type: textarea
     id: what
-    attributes:
-      label: What happened, and what did you expect?
-    validations: { required: true }
-  - type: textarea
-    id: repro
-    attributes:
-      label: How to reproduce
-      description: Commands, subject or ledger index, and the output. Never paste an API key.
-      render: shell
+    attributes: { label: What happened, description: "The exact request (no keys), what you expected, what you got." }
     validations: { required: true }
   - type: input
+    id: check_id
+    attributes: { label: check_id or ledger index, description: "From the reply, if there is one." }
+  - type: input
+    id: when
+    attributes: { label: Time (UTC) }
+  - type: input
     id: env
-    attributes:
-      label: Environment
-      placeholder: "Node 22.11 / Python 3.12, macOS 15"
+    attributes: { label: Environment, description: "Package and version, language runtime, OS." }

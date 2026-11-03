@@ -1,0 +1,4 @@
+Copyright 2026 Mizan Verification, Inc.
+
+Code in packages/, examples/ and verify/ is licensed under the Apache License, Version 2.0 (LICENSE).
+The specifications in specs/ are not covered by the Apache License; see specs/LICENSE.md.
