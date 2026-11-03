@@ -2,7 +2,16 @@
 
 One shape for every result. A number travels with how it was measured, how many tries stand behind it, what evidence supports it, and whether it meets the bar of the party relying on it. MIZAN checks claims against this standard and signs the answer.
 
-Live page: <https://mizan.market/counted-claim/> · Version 1 · November 2026.
+Live page: <https://mizan.market/counted-claim/>
+
+## Versions
+
+| Version | Status | Date | Text |
+|---|---|---|---|
+| **1.1** | **Current** | 2026-11-03 | This folder, on `main`; tagged [`spec-1.1`](https://github.com/muaviamohammed/mizan/releases/tag/spec-1.1) |
+| 1.0 | Superseded | 2026-11-03 | [`specs/` at 31b3001](https://github.com/muaviamohammed/mizan/tree/31b3001/specs) |
+
+What changed between versions: [`CHANGELOG.md`](../CHANGELOG.md). How a version is proposed, reviewed and published: [`GOVERNANCE.md`](../GOVERNANCE.md). A version, once published, is never edited; corrections ship as a new version.
 
 ## Documents
 
