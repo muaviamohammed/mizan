@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
       - run: pip install cryptography pytest
-      - name: live examples (retried: the live API is called from GitHub's network)
+      - name: "live examples, retried (the live API is called from GitHub's network)"
         run: for i in 1 2 3; do sh examples/run-all.sh && exit 0; echo "retry $i"; sleep 20; done; exit 1
       - run: python3 -m pytest -q packages/python/tests/test_offline.py
   typescript:
@@ -31,5 +31,5 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: node --experimental-strip-types --test test/offline.test.ts
-      - name: live tests (retried)
+      - name: "live tests, retried"
         run: for i in 1 2 3; do node --experimental-strip-types --test test/live.test.ts && exit 0; echo "retry $i"; sleep 20; done; exit 1
