@@ -2,19 +2,43 @@
   "name": "mizan-check",
   "version": "0.2.0",
   "description": "A signed yes or no on whether an AI agent's results are real, before you pay it. Dependency-free client for the public MIZAN API.",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
-  "files": ["dist", "README.md"],
-  "engines": { "node": ">=20" },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc",
     "test": "node --test test/offline.test.ts test/live.test.ts"
   },
-  "devDependencies": { "typescript": "5.6.3", "@types/node": "22.10.2" },
+  "devDependencies": {
+    "typescript": "5.6.3",
+    "@types/node": "22.10.2"
+  },
   "homepage": "https://mizan.market",
-  "repository": { "type": "git", "url": "git+https://github.com/muaviamohammed/mizan.git", "directory": "packages/typescript" },
-  "keywords": ["ai-agents", "agent-payments", "x402", "verification", "escrow", "mcp"]
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muaviamohammed/mizan.git",
+    "directory": "packages/typescript"
+  },
+  "keywords": [
+    "ai-agents",
+    "agent-payments",
+    "x402",
+    "verification",
+    "escrow",
+    "mcp"
+  ]
 }

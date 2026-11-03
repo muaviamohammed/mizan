@@ -62,4 +62,4 @@ What leaves your machine: the endpoint URL and the answers your endpoint gives t
 python3 -m pytest tests              # offline binding/pinning tests + live tests (or: python3 tests/test_live.py)
 ```
 
-Licence: Apache-2.0.
+Licence: MIT.

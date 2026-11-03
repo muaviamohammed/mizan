@@ -33,4 +33,4 @@ Exports: `check`, `compileRule`, `ruleHash`, `verifyToken`, `bindToken`, `verify
 npm test                            # offline binding/pinning tests, then live against https://studio.mizan.market
 ```
 
-Licence: Apache-2.0.
+Licence: MIT.

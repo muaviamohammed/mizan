@@ -13,7 +13,7 @@ Thank you for helping. This repository holds the public side of MIZAN: the speci
 
 1. Every number or claim in a document links to something a reader can run or fetch. No hardcoded live counts.
 2. Examples run against the live API and pass `sh examples/run-all.sh` before review.
-3. Code is Apache-2.0. By contributing code you agree it is licensed under Apache-2.0. Changes to `specs/` are proposals: MIZAN maintains the specification text ([`GOVERNANCE.md`](./GOVERNANCE.md)).
+3. Code is MIT. By contributing code you agree it is licensed under MIT. Changes to `specs/` are proposals: MIZAN maintains the specification text ([`GOVERNANCE.md`](./GOVERNANCE.md)).
 4. Never commit keys, tokens, personal data or binaries.
 
 ## Development

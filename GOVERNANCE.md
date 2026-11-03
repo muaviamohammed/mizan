@@ -6,7 +6,7 @@ How the Counted Claim Standard changes.
 
 The specification text in [`specs/`](./specs/) is maintained by Mizan Verification, Inc. Copyright © 2026 Mizan Verification, Inc. All rights reserved. Anyone may implement and verify against the standard free of charge ([`specs/LICENSE.md`](./specs/LICENSE.md)); no permission, account or fee is needed to build a conforming client, verifier or integration.
 
-Code in `packages/`, `examples/` and `verify/` is Apache-2.0 and follows [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+Code in `packages/`, `examples/` and `verify/` is MIT and follows [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## Proposing a change
 

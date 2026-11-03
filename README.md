@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/muaviamohammed/mizan/actions/workflows/ci.yml"><img src="https://github.com/muaviamohammed/mizan/actions/workflows/ci.yml/badge.svg?branch=main" alt="live examples"></a>
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/code-Apache--2.0-111318" alt="code: Apache-2.0"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/code-MIT-111318" alt="code: MIT"></a>
 </p>
 
 MIZAN is the second ledger of the economy: a signed record of whether results were earned, checked before money moves.
@@ -134,7 +134,7 @@ Every quickstart and example runs against the live API: `sh examples/run-all.sh`
 
 ## Licence
 
-Code in `packages/`, `examples/` and `verify/`: [Apache-2.0](./LICENSE). Specifications in `specs/`: Copyright © 2026 Mizan Verification, Inc. All rights reserved. Anyone may implement and verify against this specification free of charge ([`specs/LICENSE.md`](./specs/LICENSE.md)).
+Code in `packages/`, `examples/` and `verify/`: [MIT](./LICENSE). Specifications in `specs/`: Copyright © 2026 Mizan Verification, Inc. All rights reserved. Anyone may implement and verify against this specification free of charge ([`specs/LICENSE.md`](./specs/LICENSE.md)).
 
 Security: [`SECURITY.md`](./SECURITY.md) · Contributing: [`CONTRIBUTING.md`](./CONTRIBUTING.md) · Governance: [`GOVERNANCE.md`](./GOVERNANCE.md) · Changes: [`CHANGELOG.md`](./CHANGELOG.md) · Conduct: [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md)
 

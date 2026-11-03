@@ -7,7 +7,7 @@ name = "mizan-check"
 version = "0.2.0"
 description = "A signed yes or no on whether an AI agent's results are real, before you pay it. Thin client for the public MIZAN API."
 readme = "README.md"
-license = "Apache-2.0"
+license = "MIT"
 requires-python = ">=3.9"
 dependencies = ["cryptography>=41"]
 keywords = ["ai-agents", "agent-payments", "x402", "verification", "escrow"]
