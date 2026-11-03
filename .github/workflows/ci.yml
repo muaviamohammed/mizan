@@ -17,8 +17,9 @@ jobs:
         with: { python-version: "3.12" }
       - uses: actions/setup-node@v4
         with: { node-version: "22" }
-      - run: pip install cryptography
+      - run: pip install cryptography pytest
       - run: sh examples/run-all.sh
+      - run: python3 -m pytest -q packages/python/tests/test_offline.py
   typescript:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: packages/typescript } }
@@ -28,4 +29,4 @@ jobs:
         with: { node-version: "22" }
       - run: npm ci
       - run: npm run build
-      - run: node --experimental-strip-types --test test/live.test.ts
+      - run: node --experimental-strip-types --test test/offline.test.ts test/live.test.ts

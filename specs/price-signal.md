@@ -25,8 +25,8 @@ Only record fields enter: what was counted and its kind, the evidence grade, the
 | Count | 25 | rising with log10 of the count, saturating at 10,000 |
 | Age | 15 | linear, one year saturates |
 | Bars met | 10 | share of the bar's clauses met |
-| Requirers | 10 | 2.5 per requirer that proved a key or identity; never an anonymous claim or a test identity |
-| Check history | 10 | ALLOW share of the last 90 days; neutral 5 when there is none |
+| Requirers | 10 | 2.5 per requirer that proved a key or identity; never an anonymous claim, a test identity or the subject's own identity |
+| Check history | 10 | ALLOW share of the last 90 days, counting only checks made by proven identities (verified account, wallet login or verified link) other than the subject itself; neutral 5 when there is none |
 
 Adjustments: drawdown over 25% −5 · worst bar under −15% −5 · pass@1 up to +5 · open disputes filed by an authenticated party −3 each, to −9 · upheld disputes −5 each, to −15. An overturned verdict, where MIZAN was wrong, never lowers the subject's score; an anonymous filing never counts. A REFUSE caps the score at 39 and the tier at D.
 

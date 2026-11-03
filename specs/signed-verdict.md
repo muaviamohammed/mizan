@@ -18,17 +18,20 @@ Pin the key file (or the `key_id` you accept) in production. Keys rotate only by
 `token` on every check reply: a compact JWS, `header.payload.signature`, base64url.
 
 - Header: `{"alg": "EdDSA", "kid": "<key_id>", "typ": "JWT"}`.
-- Payload fields include `iss`, `sub`, `decision`, `evidence_rung`, `basis`, `reasons`, `amount`, `currency`, `check_id`, `standing`, `log_size`, `iat`, `exp` (24 hours).
+- Payload fields include `iss`, `sub`, `subject_as_given`, `decision`, `evidence_rung`, `basis`, `reasons`, `amount`, `currency`, `check_id`, `standing`, `log_size`, `iat`, `exp` (24 hours).
+- `subject_requested`: present when the subject you sent was an alias that MIZAN resolved (for example `try-me`); it is the string exactly as you sent it.
+- A check against a rule (requirement check) carries `subject_as_given`, `requirement` (`id`, `version`, `hash`, …) and, flat, `requirement_ref` (`"req_…@v"`, or `"inline"`) and `requirement_hash`. A check at the default bar carries no requirement fields.
 
 Verify offline:
 
 1. Split the token; base64url-decode header and payload.
 2. Require `alg == "EdDSA"`; find the Ed25519 key whose `key_id == kid`.
 3. Verify the signature over the ASCII bytes `header.payload` (the two base64url segments joined by `.`).
-4. Require `exp > now`, `sub` is the party you are about to pay, and `decision == "ALLOW"`.
+4. Require `exp > now`, `decision == "ALLOW"`, and that the token is about the party you are about to pay: `sub`, `subject_as_given` or `subject_requested` equals that payee. A token about anyone else is never an ALLOW for this payment.
+   If you pinned a rule, also require `requirement_hash` equal to your pinned hash: an ALLOW at the default bar, or against another rule, does not satisfy it.
 5. Keep the token with the payment record. Optional online check: `POST /api/check/verify {"token"}` also returns `still_allow` now.
 
-Reference: [`verify/verify_token.py`](../verify/verify_token.py), `verify_token()` in [`packages/python`](../packages/python/), `verifyToken()` in [`packages/typescript`](../packages/typescript/).
+Reference: [`verify/verify_token.py`](../verify/verify_token.py), `verify_token()` / `bind_token()` in [`packages/python`](../packages/python/), `verifyToken()` / `bindToken()` in [`packages/typescript`](../packages/typescript/); each package's `guard()` applies steps 1 to 4.
 
 ## 2. Signed messages: code gate, attestation, price
 

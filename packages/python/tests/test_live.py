@@ -67,6 +67,39 @@ def test_guard_fails_closed_when_unreachable():
         m.API = old
 
 
+def test_live_try_me_token_never_authorises_another_payee():
+    t = m.check("try-me")["token"]
+    assert m.bind_token(t, subject="try-me")["decision"] == "ALLOW"
+    try:
+        m.bind_token(t, subject="unknown-seller.example")
+        raise AssertionError("a try-me ALLOW passed for another payee")
+    except m.MizanError as e:
+        assert "another payee" in str(e)
+
+
+def test_live_default_bar_allow_never_passes_a_pinned_rule():
+    strict = m.compile_rule("pass@1 at least 60% over at least 20 tasks")
+    d = m.check("try-me")                                   # default bar: ALLOW, but about no rule
+    try:
+        m.bind_token(d["token"], subject="try-me", requirement_hash=strict["hash"])
+        raise AssertionError("a default-bar ALLOW passed a pinned guard")
+    except m.MizanError as e:
+        assert "pinned rule" in str(e)
+    r = m.check(MODEL, rule=strict["requirement"])          # the rule's own ALLOW carries its hash
+    assert m.bind_token(r["token"], subject=MODEL, requirement_hash=strict["hash"])["requirement_hash"] == strict["hash"]
+
+
+def test_live_guard_pinned_to_a_rule():
+    words = "pass@1 at least 60% over at least 20 tasks"
+    g = m.guard(lambda payee: "paid", mode="enforce", rule=words)
+    assert g(MODEL) == "paid"
+    try:
+        g("try-me")   # try-me is ALLOW at the default bar but has no counted eval: REFUSE against this rule
+        raise AssertionError("pinned guard paid on a different bar")
+    except m.MizanRefused:
+        pass
+
+
 def test_enroll_requires_a_linked_origin():
     key = os.environ.get("MIZAN_TEST_KEY")
     if not key:

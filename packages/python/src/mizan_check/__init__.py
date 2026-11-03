@@ -8,6 +8,7 @@ offline signature checks use `cryptography` (installed with this package).
     d = check("try-me")                                   # free, no key
     d["decision"], d["evidence_rung"]                     # "ALLOW", "PROVEN"
     verify_token(d["token"])                              # Ed25519, offline, raises if forged or expired
+    bind_token(d["token"], subject="try-me")              # ...and about THIS subject, ALLOW (what guard() requires)
 
     d = check("model:openai/gpt-oss-20b", rule="pass@1 at least 60% over at least 20 tasks")
 
@@ -27,10 +28,10 @@ from typing import Any, Callable
 
 __all__ = [
     "API", "MizanError", "MizanRefused",
-    "check", "compile_rule", "rule_hash", "verify_token", "verify_reply", "verify_message", "load_keys",
+    "check", "compile_rule", "rule_hash", "verify_token", "bind_token", "verify_reply", "verify_message", "load_keys",
     "guard", "claim", "link_challenge", "link_complete", "enroll",
 ]
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 API = os.environ.get("MIZAN_API", "https://studio.mizan.market")
 USER_AGENT = f"mizan-check-py/{__version__} (+https://github.com/muaviamohammed/mizan)"
@@ -123,11 +124,36 @@ def check(subject: str, rule: str | dict | None = None, *, amount: float | None 
 # ---------------------------------------------------------------- offline verification
 
 _KEYS: dict | None = None
+PINNED_KEYS_ENV = "MIZAN_PINNED_KEYS"                 # path to your copy of mizan-keys.json, or that JSON inline
+PINNED_KEYS_SHA256_ENV = "MIZAN_PINNED_KEYS_SHA256"   # optional: sha256 of that file; a mismatch raises (fail closed)
+
+
+def _pinned_from_env() -> dict | None:
+    env = (os.environ.get(PINNED_KEYS_ENV) or "").strip()
+    if not env:
+        return None
+    raw = env.encode() if env.startswith("{") else open(os.path.expanduser(env), "rb").read()
+    want = (os.environ.get(PINNED_KEYS_SHA256_ENV) or "").strip().lower()
+    if want and hashlib.sha256(raw).hexdigest() != want:
+        raise MizanError(f"{PINNED_KEYS_ENV} does not match {PINNED_KEYS_SHA256_ENV}: refusing to trust it")
+    return json.loads(raw)
 
 
 def load_keys(refresh: bool = False) -> dict:
-    """The published keys: https://studio.mizan.market/.well-known/mizan-keys.json (cached per process)."""
+    """The keys every verification in this package uses.
+
+    Pinned (recommended in production): set MIZAN_PINNED_KEYS to a copy of
+    https://studio.mizan.market/.well-known/mizan-keys.json (a path, or the JSON inline) and, optionally,
+    MIZAN_PINNED_KEYS_SHA256 to that file's sha256. When pinned, keys are NEVER fetched from the network.
+    You can also pass keys=<that object> to verify_token / verify_message / verify_reply / bind_token / guard.
+
+    Default (no pin): FETCHED once per process from the URL above over HTTPS. That trusts the network path and the
+    API at fetch time; pin the file to remove that trust.
+    """
     global _KEYS
+    pinned = _pinned_from_env()
+    if pinned is not None:
+        return pinned
     if _KEYS is None or refresh:
         _KEYS = _req("GET", "/.well-known/mizan-keys.json")
     return _KEYS
@@ -167,14 +193,41 @@ def verify_token(token: str, *, keys: dict | None = None, now: float | None = No
     return payload
 
 
+def bind_token(token: str, *, subject: str, requirement_hash: str | None = None, keys: dict | None = None,
+               now: float | None = None) -> dict:
+    """verify_token, then the binding guard() needs. Returns the payload; raises MizanError unless ALL hold:
+    the signature verifies and the token is unexpired; its decision is ALLOW; it is about `subject` (its sub,
+    subject_as_given or subject_requested equals the payee you are about to pay); and, when you pinned a rule,
+    its requirement_hash equals that hash. A token for one payee never authorises another; a default-bar
+    ALLOW never satisfies a guard pinned to a stricter rule."""
+    payload = verify_token(token, keys=keys, now=now)
+    if payload.get("decision") != "ALLOW":
+        raise MizanError(f"the signed decision is {payload.get('decision')}, not ALLOW")
+    norm = lambda x: (lambda s: s.lower() if s.lower().startswith("0x") else s)(str(x or "").strip())  # noqa: E731
+    want = norm(subject)
+    have = [norm(payload.get(k)) for k in ("sub", "subject_as_given", "subject_requested") if payload.get(k)]
+    # the server stores at most 120 characters of a subject: a longer payee matches only that full stored prefix
+    if not want or not any(want == h or (len(h) >= 120 and len(want) > len(h) and want.startswith(h)) for h in have):
+        raise MizanError(f"the token is about {have or 'nobody'}, not {subject!r}: never an ALLOW for another payee")
+    if requirement_hash:
+        req = payload.get("requirement")
+        got = payload.get("requirement_hash") or (req.get("hash") if isinstance(req, dict) else None)
+        if str(got or "").lower() != str(requirement_hash).lower():
+            raise MizanError("the token is not about the pinned rule (requirement_hash differs or is absent)")
+    return payload
+
+
 def verify_message(signed: dict, *, keys: dict | None = None, now: float | None = None) -> dict:
-    """Verify a signed message object {message, signature, ...}: pricing_message, contract_message, attestation."""
+    """Verify a signed message object {message, signature, ...}: pricing_message, contract_message, attestation.
+    Raises MizanError if the signature fails or the message has expired (expires_at, or expires on attestations)."""
     msg = signed["message"]
     canon = json.dumps(msg, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
     if not _ed25519(msg["key_id"], canon, _b64u(signed["signature"]), keys):
         raise MizanError("signature does not verify against the published key")
-    if msg.get("expires_at", float("inf")) < (now or time.time()):
-        raise MizanError("message expired")
+    # pricing and contract messages carry expires_at; attestations carry expires. Either one ends validity.
+    for field in ("expires_at", "expires"):
+        if field in msg and (not isinstance(msg[field], (int, float)) or msg[field] < (now or time.time())):
+            raise MizanError("message expired")
     return msg
 
 
@@ -194,25 +247,64 @@ def verify_reply(body: dict, *, keys: dict | None = None) -> bool:
 # ---------------------------------------------------------------- in your payment path
 
 def guard(pay: Callable[..., Any], *, mode: str = "advise", rule: str | dict | None = None,
-          on_verdict: Callable[[dict], None] | None = None, timeout: float = 5) -> Callable[..., Any]:
+          requirement_hash: str | None = None, on_verdict: Callable[[dict], None] | None = None,
+          keys: dict | None = None, timeout: float = 5, advise_timeout: float = 1.5) -> Callable[..., Any]:
     """Wrap your own pay(payee, *args, **kw). MIZAN never holds or moves the money.
 
-    advise  : always pays; the verdict (or UNVERIFIABLE) goes to on_verdict for your log.
-    enforce : pays only on an ALLOW whose token verifies offline; REFUSE, error, timeout,
-              bad signature or expiry raise MizanRefused and nothing is paid (fail-closed).
+    enforce : pays only when the signed token verifies here AND names this payee AND says ALLOW AND is unexpired
+              AND (when a rule is pinned) carries that rule's hash. Anything else, including a network error or a
+              timeout, raises MizanRefused and nothing is paid (fail-closed).
+    advise  : always pays; the verdict (or UNVERIFIABLE) goes to on_verdict for your log. The payment waits at most
+              advise_timeout seconds (default 1.5) for MIZAN, whatever the network does.
+
+    rule             : None (default bar), "req_...@v", plain words, or a rule object (see check()).
+    requirement_hash : pin the rule. Taken from rule="req_...@v#<hash>", or hashed here for a rule object; plain words
+                       are compiled once and their hash pinned. A bare "req_...@v" is bound by its signed ref only.
+    keys             : pinned keys (the mizan-keys.json object). Default: load_keys(), which reads MIZAN_PINNED_KEYS
+                       when set and never fetches then; without a pin it fetches the published keys once (see load_keys).
     """
     if mode not in ("advise", "enforce"):
         raise ValueError('mode must be "advise" or "enforce"')
+    pinned_hash = requirement_hash
+    if isinstance(rule, str) and rule.startswith("req_") and "#" in rule:
+        rule, _, h = rule.partition("#")
+        pinned_hash = pinned_hash or h.strip().lower()
+    elif isinstance(rule, dict) and pinned_hash is None:
+        pinned_hash = rule_hash(rule)
+    elif isinstance(rule, str) and not rule.startswith("req_") and pinned_hash is None:
+        c = compile_rule(rule)
+        if c.get("unmatched") or not c.get("requirement"):
+            raise MizanError(f"rule not understood: {c.get('unmatched') or c.get('refusal')}")
+        rule, pinned_hash = c["requirement"], c.get("hash") or rule_hash(c["requirement"])
+    pinned_ref = rule if (isinstance(rule, str) and rule.startswith("req_") and not pinned_hash) else None
+
+    def decide(payee: str) -> dict:
+        reply = check(payee, rule, timeout=(advise_timeout if mode == "advise" else timeout))
+        v = {"subject": payee, "decision": reply.get("decision"), "evidence_rung": reply.get("evidence_rung"),
+             "token": reply.get("token"), "check_id": reply.get("check_id"), "explain": reply.get("explain"),
+             "proof_request": reply.get("proof_request"), "reply": reply, "token_verified": False}
+        try:
+            pl = bind_token(reply.get("token") or "", subject=payee, requirement_hash=pinned_hash, keys=keys)
+            if pinned_ref:   # a published id without its hash: at least the signed ref must be that rule
+                req = pl.get("requirement") if isinstance(pl.get("requirement"), dict) else {}
+                if (pl.get("requirement_ref") or f"{req.get('id')}@{req.get('version')}") != pinned_ref:
+                    raise MizanError(f"the token is not about {pinned_ref}")
+            v["token_verified"] = True
+        except MizanError as e:
+            v["not_verified_because"] = str(e)
+        return v
 
     def guarded(payee: str, *args, **kw):
-        try:
-            reply = check(payee, rule, timeout=timeout)
-            ok = bool(reply.get("token")) and bool(verify_token(reply["token"]))
-            v = {"subject": payee, "decision": reply["decision"], "evidence_rung": reply.get("evidence_rung"),
-                 "token_verified": ok, "token": reply.get("token"), "check_id": reply.get("check_id"),
-                 "explain": reply.get("explain"), "proof_request": reply.get("proof_request"), "reply": reply}
-        except Exception as e:  # network, timeout, forged or expired token
-            v = {"subject": payee, "decision": "UNVERIFIABLE", "error": str(e)[:200], "token_verified": False}
+        if mode == "advise":
+            import threading
+            box: dict = {}
+            th = threading.Thread(target=lambda: box.update(v=_safe(decide, payee)), daemon=True)
+            th.start()
+            th.join(advise_timeout)
+            v = box.get("v") or {"subject": payee, "decision": "UNVERIFIABLE", "token_verified": False,
+                                 "error": f"no answer within {advise_timeout:g}s; paid without waiting"}
+        else:
+            v = _safe(decide, payee)
         if on_verdict:
             on_verdict(v)
         if mode == "enforce" and not (v["decision"] == "ALLOW" and v["token_verified"]):
@@ -220,6 +312,13 @@ def guard(pay: Callable[..., Any], *, mode: str = "advise", rule: str | dict | N
         return pay(payee, *args, **kw)
 
     return guarded
+
+
+def _safe(fn: Callable[[str], dict], payee: str) -> dict:
+    try:
+        return fn(payee)
+    except Exception as e:  # network, timeout, malformed reply
+        return {"subject": payee, "decision": "UNVERIFIABLE", "error": str(e)[:200], "token_verified": False}
 
 
 # ---------------------------------------------------------------- payee side: get counted

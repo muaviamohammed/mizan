@@ -49,7 +49,7 @@ d = check("model:openai/gpt-oss-20b", rule="pass@1 at least 60% over at least 20
 print(d["decision"], d["requirement"]["shown_back"])
 ```
 
-## Get your agent counted: three calls
+## Get your agent counted: four calls
 
 The other side of the check. When someone checks your agent before paying it, this is what turns a REFUSE (no record yet) into a counted answer.
 
@@ -59,11 +59,15 @@ KEY=$(curl -s -X POST https://studio.mizan.market/api/agents/claim -H 'content-t
 
 curl -s -X POST https://studio.mizan.market/api/link/challenge -H "authorization: Bearer $KEY" \
   -H 'content-type: application/json' -d '{"identifier":"https://api.yours.example/v1/chat/completions"}'
-# 2. serve the returned nonce at https://api.yours.example/.well-known/mizan-challenge, then POST /api/link/complete
+# 2. returns challenge_id and nonce: serve the nonce at https://api.yours.example/.well-known/mizan-challenge
+
+curl -s -X POST https://studio.mizan.market/api/link/complete -H "authorization: Bearer $KEY" \
+  -H 'content-type: application/json' -d '{"challenge_id":"<challenge_id from step 2>"}'
+# 3. MIZAN fetches the nonce from your origin: the endpoint is now linked to your identity
 
 curl -s -X POST https://studio.mizan.market/api/eval/enroll -H "authorization: Bearer $KEY" \
   -H 'content-type: application/json' -d '{"url":"https://api.yours.example/v1/chat/completions","adapter":"openai"}'
-# 3. enrolled: MIZAN runs sealed tasks at times it picks and counts every try
+# 4. enrolled: MIZAN runs its own tasks at times it picks and counts every try
 ```
 
 | Leaves your machine | Never leaves your machine |
@@ -110,15 +114,18 @@ The reply says both, in fields `grading` and `inference_provenance`: <https://st
 
 You choose the failure mode.
 
-| Mode | On ALLOW | On REFUSE, timeout, error, bad signature, expiry |
+| Mode | On ALLOW | On REFUSE, timeout, error, bad signature, expiry, wrong payee, wrong rule |
 |---|---|---|
-| **advise** | pays, logs the signed verdict | pays, logs the verdict or "unverifiable". Never blocks. |
-| **enforce** | pays only if the token verifies against the published key | does not pay (fail-closed) |
+| **advise** | pays, logs the signed verdict | pays, logs the verdict or "unverifiable". Waits at most 1.5 s for MIZAN (configurable). |
+| **enforce** | pays only if the token verifies **and** is about this payee **and** (with a pinned rule) about that rule | does not pay (fail-closed) |
 
 ```python
 from mizan_check import guard
 pay = guard(release_escrow, mode="advise", on_verdict=audit_log)   # later: mode="enforce"
+pay = guard(release_escrow, mode="enforce", rule="req_…@v#<hash>") # pinned: an ALLOW against any other bar never pays
 ```
+
+The guard checks every token it acts on: Ed25519 signature against the key file, `exp` in the future, `decision` = `ALLOW`, `sub` / `subject_as_given` / `subject_requested` equal to the payee being paid, and `requirement_hash` equal to the pinned rule. Pin the key file so nothing is fetched at decision time: [`verify/`](./verify/#pin-the-keys).
 
 The hosted release guard does enforce on MIZAN's side: a hold pins one exact rule version and hash; release is authorized only on a live ALLOW against it; REFUSE, timeout, error, expiry, cancel or a second release attempt return a signed denial; one authorization per hold, redeemable once. MIZAN never holds or moves the money ([rules](https://studio.mizan.market/api/release/program)). Response time and time to a first ALLOW are measured live: <https://mizan.market/service-level/>.
 
@@ -165,8 +172,20 @@ Each identity has its own record, and you check the exact agent you are paying, 
 **My counterparties are not counted yet.**
 Start in advise mode: nothing blocks, and every payment carries the signed verdict. Cap exposure to `unrated` counterparties in your own policy (the price signal's relative limit for `unrated` is 0). Every REFUSE carries a proof request you can forward; when the other side proves your bar, your next check returns ALLOW.
 
+**When my agent enrolls, whose tasks does MIZAN run?**
+MIZAN's, never yours. Today's suites, listed live at <https://studio.mizan.market/api/eval/suites>: `mixed-gen@1`, 20 tasks generated fresh from a secret seed for every run (arithmetic, remainders, reversing and counting letters in strings, sorting words); and fixed suites `arith-logic@1`, `string-format@1`, `tool-json@1` (20 tasks each), `word-math@1` and `code-output@1` (50 tasks each). The scheduler picks the generated suite whenever one exists. Each task is sent 3 times, one request at a time and spaced out (the latest run took about 50 minutes for 60 requests), and every attempt counts, including errors, timeouts and refusals.
+
+**Who pays for the tokens?**
+You do. MIZAN calls your own endpoint, so the inference runs on your account. A scheduled run is one per enrolled endpoint every 7 days: 20 tasks × 3 attempts = 60 requests. Withdrawing an endpoint stops new runs; past runs stay public.
+
+**Can an endpoint answer MIZAN's calls differently from everyone else's?**
+It can try. The run time is chosen from a server-side secret, with a fresh offset every 7-day period, so it is not announced; but the requests come from MIZAN's servers and the task style is public, so an endpoint that recognises them could route them to a different model. That is why which model answered is graded **RECORDED**, not PROVEN: MIZAN measures what the endpoint at that URL answered when MIZAN called it and commits every reply; it cannot attest the weights behind the URL. The score and the count are a separate question: every attempt is committed to the ledger, and where a run carries a grade proof they are PROVEN (the example above).
+
+**Are tasks reused?**
+Generated tasks are new for every run: only the seed's hash is committed before the run, and each generated run's tasks, answers and raw outputs are published after it seals, so a cached answer table is worthless next time. A fixed suite is sent to a given endpoint at most once, and is retired after 10 public runs, when its answers and every run's raw outputs are published for anyone to re-grade. Until then its answers stay private.
+
 **Who runs this, and what if it is down?**
-Mizan Verification, Inc. runs the service. You choose the failure mode: advise proceeds, enforce holds. Answers you already have stay verifiable offline with the published key; tokens are valid for 24 hours. The public ledger is append-only and stamped hourly by two outside timestamp authorities, so neither you nor MIZAN has to trust MIZAN's word about the past. Service level is measured live at <https://mizan.market/service-level/>.
+Mizan Verification, Inc. runs the service. You choose the failure mode: advise proceeds, enforce holds. Answers you already have stay verifiable offline with the published key; tokens are valid for 24 hours. The public ledger is append-only, and its checkpoints are stamped on an hourly schedule by two outside timestamp authorities (the latest stamp time is in the signed head), so neither you nor MIZAN has to trust MIZAN's word about the past. Service level is measured live at <https://mizan.market/service-level/>.
 
 **What does MIZAN claim?**
 Only what was counted and proven against a stated bar: a named, measured fact about a record. Never that a system is safe, aligned or honest in general, never a forecast, never advice about a payment. A REFUSE for "no record" says nothing against anyone. The relying party keeps responsibility.

@@ -42,7 +42,7 @@ Every reply is one signed JSON object. The fields an integrator relies on:
 | `disputes` | `{open, upheld, overturned}` | Contest history for the subject ([disputes](./disputes.md)). |
 | `proof_request` | `{url, forward, status_url, expires_utc}` | On REFUSE: a ready message to forward to the subject. When it proves the bar, the next check returns ALLOW. MIZAN never contacts anyone. |
 | `dispute` | `{route, body, window}` | On REFUSE: how to contest it. |
-| `integrate` | snippets | On REFUSE for an uncounted subject: the three calls to get counted. |
+| `integrate` | snippets | On REFUSE for an uncounted subject: the calls to get counted (claim an identity, link the endpoint's origin, enrol it). |
 | `provenance.signature` | Ed25519 | Over the canonical body ([signed verdict](./signed-verdict.md)). |
 
 Errors are JSON with `error`, `explain` and `next`; a malformed rule returns the words that were not understood.

@@ -1,4 +1,5 @@
-"""Payee side: get your agent counted. Three calls; only your endpoint URL leaves your machine.
+"""Payee side: get your agent counted. Four calls (claim, link challenge, link complete, enrol) and one file you serve;
+only your endpoint URL leaves your machine.
   MIZAN_KEY=mzn_... python3 get_counted.py https://api.yours.example/v1/chat/completions
 Without MIZAN_KEY it claims a new identity first (key shown once: keep it)."""
 import os, sys; sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..")); import _path  # noqa

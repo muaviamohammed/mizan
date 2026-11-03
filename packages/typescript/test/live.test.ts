@@ -1,7 +1,7 @@
 // Live tests against https://studio.mizan.market. Run: node --test test/
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { check, compileRule, guard, loadKeys, MizanRefused, verifyMessage, verifyToken } from "../src/index.ts";
+import { bindToken, ruleHash, check, compileRule, guard, loadKeys, MizanRefused, verifyMessage, verifyToken } from "../src/index.ts";
 
 const MODEL = "model:openai/gpt-oss-20b";
 let keys: Awaited<ReturnType<typeof loadKeys>>;
@@ -40,4 +40,22 @@ test("guard: enforce pays only on verified ALLOW, advise always pays", async () 
   const advise = guard(async () => "paid", { mode: "advise", onVerdict: (v) => seen.push(v.decision) });
   assert.equal(await advise("unknown-seller.example"), "paid");
   assert.deepEqual(seen, ["ALLOW", "REFUSE", "REFUSE"]);
+});
+
+test("a live try-me ALLOW never authorises another payee", async () => {
+  const t = (await check("try-me")).token;
+  assert.equal(bindToken(t, "try-me", { keys }).decision, "ALLOW");
+  assert.throws(() => bindToken(t, "unknown-seller.example", { keys }), /another payee/);
+});
+
+test("a live default-bar ALLOW never passes a guard pinned to a rule; the rule's own ALLOW does", async () => {
+  const strict = await compileRule("pass@1 at least 60% over at least 20 tasks");
+  const d = await check("try-me");
+  const h = ruleHash(strict.requirement);   // the hash of the rule as this client sends it
+  assert.throws(() => bindToken(d.token, "try-me", { keys, requirementHash: h }), /pinned rule/);
+  const r = await check(MODEL, strict.requirement);
+  assert.equal(bindToken(r.token, MODEL, { keys, requirementHash: h }).requirement_hash, h);
+  const g = guard(async () => "paid", { mode: "enforce", rule: "pass@1 at least 60% over at least 20 tasks" });
+  assert.equal(await g(MODEL), "paid");
+  await assert.rejects(g("try-me"), MizanRefused);
 });
