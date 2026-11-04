@@ -1,5 +1,7 @@
 # Evidence grades
 
+> Part of [Counted 1.1](./README.md).
+
 Every claim carries exactly one grade. A lower grade is never presented as a higher one, and a claim carries the lowest grade any of its parts supports.
 
 | Grade | Meaning | Can it produce ALLOW? |

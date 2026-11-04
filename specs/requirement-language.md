@@ -1,5 +1,7 @@
 # The requirement language (the bar)
 
+> Part of [Counted 1.1](./README.md).
+
 The relying party writes the bar. Plain words are compiled into an exact, versioned rule, read back for confirmation, and fixed by hash before anyone is checked against it. Words the compiler cannot bind are listed, never guessed.
 
 ## Lifecycle

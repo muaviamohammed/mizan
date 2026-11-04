@@ -1,5 +1,7 @@
 # The counted claim
 
+> Part of [Counted 1.1](./README.md).
+
 A counted claim is a result that carries everything a relying party needs to decide on it: how it was measured, every try behind it, the evidence and its grade, the relying party's own bar, and a signed answer.
 
 ## The six parts

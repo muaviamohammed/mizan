@@ -1,6 +1,13 @@
 # Changelog
 
-Changes to the Counted Claim Standard (`specs/`) and to the clients in `packages/`. The standard is versioned `MAJOR.MINOR` as described in [`GOVERNANCE.md`](./GOVERNANCE.md); each published version is a git tag `spec-MAJOR.MINOR`.
+Changes to Counted, the Counted Claim Standard (`specs/`), and to the clients in `packages/`. The standard is versioned `MAJOR.MINOR` as described in [`GOVERNANCE.md`](./GOVERNANCE.md); each published version is a git tag `spec-MAJOR.MINOR`.
+
+## Short name · 2026-11-04
+
+No normative change; 1.1 text and tag unchanged.
+
+- The standard's short name is **Counted** ("built on Counted", "Counted-conformant", "a Counted claim"). The formal name stays the Counted Claim Standard; versions read "Counted 1.1"; the machine id is `counted/1`.
+- Additive in the live API: `provenance.standard` gains `"short": "Counted"` and `"id": "counted/1"`; `/.well-known/mizan.json` gains a `standard` object (name, short, id, version, url). Every existing field and value is unchanged, including `provenance.standard.name` and the verdict schema id `mizan.verdict/1`.
 
 ## Counted Claim Standard 1.1 · 2026-11-03
 

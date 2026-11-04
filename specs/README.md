@@ -1,5 +1,7 @@
 # The Counted Claim Standard
 
+Short name **Counted** · this version **Counted 1.1** · machine id `counted/1`.
+
 One shape for every result. A number travels with how it was measured, how many tries stand behind it, what evidence supports it, and whether it meets the bar of the party relying on it. MIZAN checks claims against this standard and signs the answer.
 
 Live page: <https://mizan.market/counted-claim/>

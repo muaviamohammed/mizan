@@ -1,5 +1,7 @@
 # The price signal
 
+> Part of [Counted 1.1](./README.md).
+
 Beside every verdict, a signed, versioned price signal: a score out of 100, a tier (A, B, C, D or unrated) and a relative capacity multiplier. It is computed from the record alone by a published function anyone re-runs. MIZAN prices the record, never the asset; partners lend and insure. MIZAN never holds money.
 
 Live page: <https://mizan.market/pricing-signal/> · exact function, hash and worked examples: `GET https://studio.mizan.market/api/pricing/function`.

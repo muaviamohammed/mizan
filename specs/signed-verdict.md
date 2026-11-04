@@ -1,5 +1,7 @@
 # The signed verdict
 
+> Part of [Counted 1.1](./README.md).
+
 Nothing MIZAN returns asks to be trusted. Every answer is signed with a published key and verifies offline, by anyone, without calling MIZAN.
 
 ## Keys

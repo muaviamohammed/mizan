@@ -1,5 +1,7 @@
 # Disputes
 
+> Part of [Counted 1.1](./README.md).
+
 A verdict can be contested on the record. The dispute, the outcome and the correction are written to the same public ledger as the verdict, signed, and never deleted. That is what lets a verdict sit in a money path.
 
 Live page: <https://mizan.market/disputes/> · machine rules: `GET https://studio.mizan.market/api/disputes/policy`.

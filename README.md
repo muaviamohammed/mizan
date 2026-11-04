@@ -9,7 +9,7 @@
 
 > **MIZAN — the second ledger of the economy.** Before you pay, hire or allocate to anyone, call `check(subject, rule)`. Proceed only on `ALLOW`. Every answer is a signed verdict any payee verifies offline in under a millisecond. Free.
 
-Payment rails prove an agent paid. MIZAN proves it earned it. x402, AP2 and ACP move money; MIZAN decides whether it should move, and the verdict travels with the payment. Built on the Counted Claim Standard; MIZAN is its reference implementation.
+Payment rails prove an agent paid. MIZAN proves it earned it. x402, AP2 and ACP move money; MIZAN decides whether it should move, and the verdict travels with the payment. Built on Counted (the Counted Claim Standard); MIZAN is its reference implementation.
 
 ### The one call
 
@@ -136,7 +136,7 @@ curl -s https://studio.mizan.market/api/check/try-me
 
 | | |
 |---|---|
-| **Specification** | [The Counted Claim Standard](./specs/), version 1.1: the counted claim, evidence grades, check API, signed verdict, requirement language, price signal, disputes, reliance, ledger. [Changelog](./CHANGELOG.md) · [Governance](./GOVERNANCE.md) |
+| **Specification** | [Counted 1.1](./specs/) (machine id `counted/1`): the counted claim, evidence grades, check API, signed verdict, requirement language, price signal, disputes, reliance, ledger. [Changelog](./CHANGELOG.md) · [Governance](./GOVERNANCE.md) |
 | **SDKs** | [Python](./packages/python/) · [TypeScript](./packages/typescript/) · [MCP](./packages/mcp/) |
 | **Examples** | [Quickstart](./examples/quickstart/) · [escrow release guard](./examples/escrow-release-guard/) · [x402 payment check](./examples/x402-payment-check/) · [marketplace gate](./examples/marketplace-listing-gate/) · [agent hire](./examples/agent-hire/) · [model eval bar](./examples/model-eval-bar/) · [get counted](./examples/get-counted/). All run live: `sh examples/run-all.sh` |
 | **Verify offline** | [`verify/`](./verify/): tokens and ledger entries re-checked on your machine with public keys, no call to MIZAN |
@@ -155,7 +155,7 @@ curl -s https://studio.mizan.market/api/check/try-me
 ## Repository
 
 ```
-specs/       the Counted Claim Standard (1.1): counted claim, grades, check API, signed verdict, bar language, price, disputes, reliance, ledger
+specs/       Counted 1.1: counted claim, grades, check API, signed verdict, bar language, price, disputes, reliance, ledger
 docs/        check · how it works · get counted · payment path · questions
 packages/    python/ and typescript/ clients (check, verify offline, guard, get counted) · mcp/ config
 examples/    quickstart · escrow release guard · x402 payment check · marketplace listing gate · agent hire · model eval bar · get counted

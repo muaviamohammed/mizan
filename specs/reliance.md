@@ -1,5 +1,7 @@
 # Delegated reliance
 
+> Part of [Counted 1.1](./README.md).
+
 A bar met once is accepted everywhere it is trusted. When a record meets a requirer's published rule, the signed reply carries an attestation. A second requirer that trusts the same rule accepts it in one call instead of running its own check. The acceptance is written to the public ledger.
 
 Live page: <https://mizan.market/reliance/>.

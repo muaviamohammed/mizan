@@ -1,5 +1,7 @@
 # The public ledger
 
+> Part of [Counted 1.1](./README.md).
+
 MIZAN's ledger (`mizan-verdict-log-v1`) is an append-only Merkle log. Every verdict, registration, probe, requirement and hourly check count is a leaf. Heads are signed; checkpoints are stamped hourly by two outside RFC 3161 timestamp authorities and by OpenTimestamps (Bitcoin). Anyone can verify any entry with public data only.
 
 ## Algorithms

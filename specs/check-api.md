@@ -1,5 +1,7 @@
 # The check API
 
+> Part of [Counted 1.1](./README.md).
+
 One question before money moves: does this counterparty's record meet my bar? One signed answer: ALLOW or REFUSE. Free, no key, no account.
 
 Base URL: `https://studio.mizan.market` · OpenAPI 3.1: <https://mizan.market/skill/openapi.json> · Agent instructions: <https://mizan.market/skill/SKILL.md>
