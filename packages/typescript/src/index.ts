@@ -118,12 +118,27 @@ const b64u = (s: string) => Buffer.from(s.replace(/-/g, "+").replace(/_/g, "/"),
 
 /** Verify a check token (compact JWS, EdDSA) offline. Returns the payload; throws if forged or expired. */
 export function verifyToken(token: string, keys: Keys, now = Date.now() / 1000): Record<string, any> {
+  if (String(token ?? "").startsWith("mzv1.")) return verifyMzv1(token, keys, now);
   const [h, p, s] = token.split(".");
   let header: any, payload: any;
   try { header = JSON.parse(b64u(h).toString()); payload = JSON.parse(b64u(p).toString()); } catch { throw new MizanError("not a MIZAN token"); }
   if (header.alg !== "EdDSA" || !ed25519(keys, header.kid, Buffer.from(`${h}.${p}`), b64u(s))) throw new MizanError("signature does not verify against the published key");
   if ((payload.exp ?? 0) < now) throw new MizanError("token expired");
   return payload;
+}
+
+/** A mizan.verdict/1 token (mzv1.<claims>.<signature over "mzv1.<claims>">), the default token of GET /api/check since
+ *  2026-11-04. Same checks as the Counted reference verifier. Returns the claims; throws if forged, malformed or expired. */
+function verifyMzv1(token: string, keys: Keys, now: number): Record<string, any> {
+  const parts = token.trim().split(".");
+  if (parts.length !== 3 || parts[0] !== "mzv1") throw new MizanError("not a MIZAN token");
+  let c: any;
+  try { c = JSON.parse(b64u(parts[1]).toString("utf8")); } catch { throw new MizanError("not a MIZAN token"); }
+  if (!c || typeof c !== "object" || Array.isArray(c)) throw new MizanError("not a MIZAN token");
+  if (!ed25519(keys, String(c.kid), Buffer.from(`mzv1.${parts[1]}`, "ascii"), b64u(parts[2]))) throw new MizanError("signature does not verify against the published key");
+  if (c.typ !== "mizan.verdict/1") throw new MizanError("not a MIZAN token");
+  if (!(Number.isInteger(c.exp) && c.exp > now)) throw new MizanError("token expired");
+  return c;
 }
 
 /**
@@ -137,7 +152,9 @@ export function bindToken(token: string, subject: string, o: { keys: Keys; requi
   if (p.decision !== "ALLOW") throw new MizanError(`the signed decision is ${p.decision}, not ALLOW`);
   const norm = (x: unknown) => { const s = String(x ?? "").trim(); return s.toLowerCase().startsWith("0x") ? s.toLowerCase() : s; };
   const want = norm(subject);
-  const have = ["sub", "subject_as_given", "subject_requested"].map((k) => norm(p[k])).filter(Boolean);
+  const have = ["sub", "subject", "subject_as_given", "subject_requested"].map((k) => norm(p[k])).filter(Boolean);
+  // mzv1 claims carry the resolved subject as "<kind>:<id>" (e.g. credential:flagship): the id part is the same subject
+  if (typeof p.subject === "string" && /^[a-z0-9_]{2,24}:./.test(p.subject)) have.push(norm(p.subject.slice(p.subject.indexOf(":") + 1)));
   // the server stores at most 120 characters of a subject: a longer payee matches only that full stored prefix
   if (!want || !have.some((h) => want === h || (h.length >= 120 && want.length > h.length && want.startsWith(h))))
     throw new MizanError(`the token is about ${JSON.stringify(have)}, not ${subject}: never an ALLOW for another payee`);

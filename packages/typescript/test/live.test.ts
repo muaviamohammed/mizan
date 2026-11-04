@@ -59,3 +59,19 @@ test("a live default-bar ALLOW never passes a guard pinned to a rule; the rule's
   assert.equal(await g(MODEL), "paid");
   await assert.rejects(g("try-me"), MizanRefused);
 });
+
+test("the default verdict token (mzv1) of GET /api/check verifies offline; tampered, expired and another payee refused", async () => {
+  const r = await fetch("https://studio.mizan.market/api/check/flagship");
+  const v: any = await r.json();
+  assert.ok(String(v.token).startsWith("mzv1."));
+  const c = verifyToken(v.token, keys);
+  assert.equal(c.decision, v.decision);
+  assert.equal(c.typ, "mizan.verdict/1");
+  const [a, b, s] = v.token.split(".");
+  assert.throws(() => verifyToken(`${a}.${b}.${[...s].reverse().join("")}`, keys));
+  assert.throws(() => verifyToken(v.token, keys, 4e9));
+  if (v.decision === "ALLOW") {
+    assert.equal(bindToken(v.token, "flagship", { keys }).decision, "ALLOW");
+    assert.throws(() => bindToken(v.token, "someone-else", { keys }));
+  }
+});
