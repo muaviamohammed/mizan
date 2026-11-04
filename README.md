@@ -7,13 +7,49 @@
   <a href="./LICENSE"><img src="https://img.shields.io/badge/code-MIT-111318" alt="code: MIT"></a>
 </p>
 
-MIZAN is the second ledger of the economy: a signed record of whether results were earned, checked before money moves.
+> **MIZAN — the second ledger of the economy.** Before you pay, hire or allocate to anyone, call `check(subject, rule)`. Proceed only on `ALLOW`. Every answer is a signed verdict any payee verifies offline in under a millisecond. Free.
+
+Payment rails prove an agent paid. MIZAN proves it earned it. x402, AP2 and ACP move money; MIZAN decides whether it should move, and the verdict travels with the payment. Built on the Counted Claim Standard; MIZAN is its reference implementation.
+
+### The one call
 
 ```bash
-curl -s https://studio.mizan.market/api/check/try-me \
-  | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["decision"], d["evidence_rung"])'
-# ALLOW PROVEN · free, no key. Replace try-me with whoever you are about to pay; pay only on ALLOW.
+curl -s https://studio.mizan.market/api/check/try-me
+# {"schema":"mizan.verdict/1","decision":"ALLOW","grade":"PROVEN",...,"token":"mzv1.…","kid":"…"}
+# try-me is the sandbox subject (always ALLOW). Replace it with whoever you are about to pay; pay only on ALLOW.
 ```
+
+Over MCP: `check(subject, rule)` at `https://studio.mizan.market/mcp`. Over A2A: the `check` skill on the card at `https://studio.mizan.market/.well-known/agent-card.json`.
+
+### Verify it offline
+
+```python
+import base64, json, time, urllib.request
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+get = lambda u: json.load(urllib.request.urlopen(u))
+b64u = lambda s: base64.urlsafe_b64decode(s + "=" * (-len(s) % 4))
+
+v = get("https://studio.mizan.market/api/check/try-me")                # the one call
+keys = get("https://studio.mizan.market/.well-known/mizan-keys.json")  # fetch once, then pin; nothing below touches the network
+pre, body, sig = v["token"].split(".")
+claims = json.loads(b64u(body))
+key = next(k for k in keys["keys"] if k["key_id"] == claims["kid"])
+Ed25519PublicKey.from_public_bytes(base64.b64decode(key["public_key_b64"])).verify(b64u(sig), f"{pre}.{body}".encode())  # raises if forged
+assert claims["decision"] == "ALLOW" and claims["exp"] > time.time()
+print(claims["decision"], claims.get("grade"), "· signature verified offline")
+```
+
+Before paying on it, also check that the verdict is about the payee you are paying (and bound to it, when you asked for a binding). Every error has one shape: `{"error": {"code", "message", "request_id", "next"}}`, where `next` is the one action that fixes it.
+
+### Where everything is
+
+| | |
+|---|---|
+| **One map** (machine-readable) | <https://mizan.market/.well-known/mizan.json> |
+| **The verdict** (format, schema, vectors) | <https://mizan.market/verdict/> |
+| **Error codes** | <https://mizan.market/verdict/codes/> |
+| **Status** | <https://mizan.market/status/> |
+| **Keys** | <https://studio.mizan.market/.well-known/mizan-keys.json> |
 
 ## Installation
 
@@ -91,7 +127,7 @@ curl -s https://studio.mizan.market/.well-known/agent-card.json
 
 ```shell
 curl -s https://studio.mizan.market/api/check/try-me
-# {"decision": "ALLOW", "evidence_rung": "PROVEN", "token": "eyJhbGciOiJFZERTQSIs…", "explain": "…", "next": {…}, …}
+# {"schema": "mizan.verdict/1", "decision": "ALLOW", "grade": "PROVEN", "token": "mzv1.…", "kid": "…", …}  (previous shape: ?format=legacy)
 ```
 
 </details>
