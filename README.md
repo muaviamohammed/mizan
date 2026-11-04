@@ -39,7 +39,7 @@ assert claims["decision"] == "ALLOW" and claims["exp"] > time.time()
 print(claims["decision"], claims.get("grade"), "· signature verified offline")
 ```
 
-Before paying on it, also check that the verdict is about the payee you are paying (and bound to it, when you asked for a binding). Every error has one shape: `{"error": {"code", "message", "request_id", "next"}}`, where `next` is the one action that fixes it.
+Before paying on it, also check that the verdict is about the payee you are paying (and bound to it, when you asked for a binding). Every error has one shape: `{"error": "<text>", "code", "message", "request_id", "next"}` (the verdict routes nest the same fields: `{"error": {"code", "message", "request_id", "next"}}`), where `next` is the one action that fixes it.
 
 ### Where everything is
 
