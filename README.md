@@ -1,3 +1,5 @@
+**MIZAN — the reference implementation of [Counted](https://github.com/muaviamohammed/counted).** The standard itself (specification, verdict format, bindings, schemas, conformance vectors) lives at [github.com/muaviamohammed/counted](https://github.com/muaviamohammed/counted).
+
 <p align="center">
   <img src="./assets/banner.svg" alt="MIZAN. The second ledger of the economy." width="100%">
 </p>
@@ -9,7 +11,7 @@
 
 > **MIZAN — the second ledger of the economy.** Before you pay, hire or allocate to anyone, call `check(subject, rule)`. Proceed only on `ALLOW`. Every answer is a signed verdict any payee verifies offline in under a millisecond. Free.
 
-Payment rails prove an agent paid. MIZAN proves it earned it. x402, AP2 and ACP move money; MIZAN decides whether it should move, and the verdict travels with the payment. Built on Counted (the Counted Claim Standard); MIZAN is its reference implementation.
+Payment rails prove an agent paid. MIZAN proves it earned it. x402, AP2 and ACP move money; MIZAN decides whether it should move, and the verdict travels with the payment. Built on [Counted](https://github.com/muaviamohammed/counted) (the Counted Claim Standard); MIZAN is its reference implementation.
 
 ### The one call
 
